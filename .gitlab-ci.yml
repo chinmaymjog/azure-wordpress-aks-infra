@@ -10,7 +10,8 @@ image:
     - '/usr/bin/env'
     - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
 
-test:
+test_run:
+  stage: build_hub
   services:
     - mcr.microsoft.com/azure-cli:latest
   script:

@@ -22,7 +22,7 @@ before_script:
   - az account set -s $ARM_SUBSCRIPTION_ID
 
 create_hub_rg:
-  stage: build_hub
+  stage: deploy_hub
   image: mcr.microsoft.com/azure-cli
   script:
     - bash ./build.sh

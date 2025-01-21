@@ -1,0 +1,172 @@
+stages:
+  - hub_rg
+  - hub_resources
+  - lab_aks
+  - dev_aks
+  - preprod_aks
+  - prod_aks
+
+.tf_image:
+  image:
+    name: hashicorp/terraform:1.3.7
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+
+.terraform_aks:
+  image:
+    name: hashicorp/terraform:1.3.7
+    entrypoint:
+      - '/usr/bin/env'
+      - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+  script:
+    - source ./global_variables
+    - cat $SSH_PRIVATE_KEY > k8s
+    - chmod 400 k8s
+    - apk upgrade
+    - apk add curl
+    - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    - chmod +x ./kubectl
+    - mv ./kubectl /usr/local/bin/kubectl
+    - cd ./kubernetes
+    - awk -F "=" '!/^$/ && !/^#/' ../global_variables | while read line; do var=$(echo $line | cut -d'=' -f1); value=$(echo $line | cut -d'=' -f2);  echo $var" = ""\"$(eval echo $value)\""; done > ../global_variables.tfvars
+    - terraform -chdir=../landing_zone init -backend-config="resource_group_name=$hub_rgname" -backend-config="storage_account_name=$tf_staccount" -backend-config="container_name=$tf_container"
+    - terraform -chdir=../landing_zone output > ../global_hub.tfvars
+    - cat ../global_variables.tfvars ../global_hub.tfvars > ../global_aks.tfvars
+    - terraform init -backend-config="resource_group_name=$hub_rgname" -backend-config="storage_account_name=$tf_staccount" -backend-config="container_name=$tf_container" -backend-config="key=aks-$project-$AKS_ENV-$AKS_LOCATION_SHORT.tfstate"
+    - terraform plan -var-file=$AKS_ENV-$AKS_LOCATION_SHORT-terraform.tfvars -var-file=../global_aks.tfvars 
+    - terraform -chdir=../landing_zone output
+    
+hub_rg_deploy:
+  stage: hub_rg
+  image: mcr.microsoft.com/azure-cli
+  script:
+    - source ./global_variables
+    - az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID -o none
+    - az account set -s $ARM_SUBSCRIPTION_ID
+    - cd ./landing_zone
+    - az group list --output table | grep $hub_rgname
+    - | 
+      if [ $? -ne 0 ] 
+      then
+          echo "creating $hub_rgname, $tf_staccount & $tf_container  to store terraform state files"
+          az group create -n $hub_rgname -l $hub_location
+          sleep 15
+          az storage account create -n $tf_staccount -g $hub_rgname -l $hub_location
+          sleep 15
+          az storage container create -n $tf_container --account-name $tf_staccount
+      else
+          echo "$hub_rgname resource group exists"
+          az storage account list -g $hub_rgname -o table | grep $tf_staccount
+          if [ $? -ne 0 ]
+          then
+          echo "creating $tf_staccount storage account"
+          az storage account create -n $tf_staccount -g $hub_rgname -l $hub_location
+          else
+          echo "$tf_staccount storage account exists"
+          fi
+          az storage container list --auth-mode login  --account-name $tf_staccount -o table | grep $tf_container
+          if [ $? -ne 0 ]
+          then
+          echo "creating $tf_container tf_container"
+          az storage container create --auth-mode login -n $tf_container --account-name $tf_staccount
+          else
+          echo "$tf_container tf_container exists"
+          fi
+      fi
+    - az image list -g $hub_rgname -o table | grep $image_offer
+    - |
+      if [ $? -ne 0 ]
+      then
+          export hub_rgname=$hub_rgname
+          export image_publisher=$image_publisher
+          export image_offer=$image_offer
+          export image_sku=$image_sku
+          echo "Creatin VM image"
+          packer init ./pkr_vm_image.pkr.hcl
+          packer build ./pkr_vm_image.pkr.hcl
+          unset hub_rgname
+          unset image_publisher
+          unset image_offer
+          unset image_sku
+      else
+          echo "VM image alreday exists"
+      fi
+  tags:
+    - k8s-infra 
+  when: manual
+
+hub_resources_deploy:
+  stage: hub_resources
+  extends: .tf_image
+  script:
+    - source ./global_variables
+    - cat $SSH_PRIVATE_KEY > k8s
+    - chmod 400 k8s
+    - cd ./landing_zone
+    - awk -F "=" '!/^$/ && !/^#/' ../global_variables | while read line; do var=$(echo $line | cut -d'=' -f1); value=$(echo $line | cut -d'=' -f2);  echo $var" = ""\"$(eval echo $value)\""; done > ../global_hub.tfvars
+    - terraform init -backend-config="resource_group_name=$hub_rgname" -backend-config="storage_account_name=$tf_staccount" -backend-config="container_name=$tf_container"
+    - terraform apply -var-file=hub-terraform.tfvars -var-file=../global_hub.tfvars -auto-approve
+  tags:
+    - k8s-infra
+  when: manual
+
+lab_aks_deploy:
+  stage: lab_aks
+  variables:
+    AKS_ENV: "lab"
+    AKS_LOCATION_SHORT: "weu"
+  extends: .terraform_aks
+  tags:
+    - k8s-infra 
+  when: manual
+
+dev_aks_deploy:
+  stage: dev_aks
+  variables:
+    AKS_ENV: "dev"
+    AKS_LOCATION_SHORT: "weu"
+  extends: .terraform_aks
+  tags:
+    - k8s-infra 
+  when: manual
+
+preprod_we_aks_deploy:
+  stage: preprod_aks
+  variables:
+    AKS_ENV: "preprod"
+    AKS_LOCATION_SHORT: "weu"
+  extends: .terraform_aks
+  tags:
+    - k8s-infra
+  when: manual
+
+prod_sea_aks_deploy:
+  stage: prod_aks
+  variables:
+    AKS_ENV: "prod"
+    AKS_LOCATION_SHORT: "sea"
+  extends: .terraform_aks
+  tags:
+    - k8s-infra
+  when: manual
+
+prod_ncus_aks_deploy:
+  stage: prod_aks
+  variables:
+    AKS_ENV: "prod"
+    AKS_LOCATION_SHORT: "ncus"
+  extends: .terraform_aks
+  tags:
+    - k8s-infra 
+  when: manual
+
+prod_we_aks_deploy:
+  stage: prod_aks
+  variables:
+    AKS_ENV: "prod"
+    AKS_LOCATION_SHORT: "weu"
+  extends: .terraform_aks
+  tags:
+    - k8s-infra 
+  when: manual

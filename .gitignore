@@ -1,0 +1,13 @@
+**/.terraform
+**/.terraform/*
+**/.terraform.*
+**/*.tfstate
+**/*.tfstate.backup
+**/.env
+**/creds
+k8s
+**/azurek8s*
+**/ToDo
+**/global_aks.tfvars
+**/global_hub.tfvars
+**/global_variables.tfvars

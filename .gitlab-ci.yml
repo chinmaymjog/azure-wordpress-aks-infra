@@ -13,9 +13,6 @@ image:
 before_script:
   - apk update && apk upgrade
   - apk add curl bash
-  - source ./global_variables
-  - cat $SSH_PRIVATE_KEY > k8s
-  - chmod 400 k8s
   - awk -F "=" '!/^$/ && !/^#/' ../global_variables | while read line; do var=$(echo $line | cut -d'=' -f1); value=$(echo $line | cut -d'=' -f2);  echo $var" = ""\"$(eval echo $value)\""; done > ../global_hub.tfvars
   - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
   - chmod +x ./kubectl

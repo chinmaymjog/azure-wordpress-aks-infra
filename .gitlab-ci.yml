@@ -1,5 +1,4 @@
 stages:
-  - build_hub
   - deploy_hub
   - deploy_aks
   - deploy_database
@@ -22,8 +21,8 @@ before_script:
   - az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID -o none
   - az account set -s $ARM_SUBSCRIPTION_ID
 
-test_run:
+create_hub_rg:
   stage: build_hub
+  image: mcr.microsoft.com/azure-cli
   script:
-    - kubectl version --client=true
-    - helm version
+    - bash ./build.sh

@@ -25,5 +25,5 @@ before_script:
 test_run:
   stage: build_hub
   script:
-    - kubectl version
+    - kubectl version --client=true
     - helm version

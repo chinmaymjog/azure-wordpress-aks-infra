@@ -24,9 +24,6 @@ hub_env="hub"
 hub_rgname=rg-$project-$hub_env-$hub_location_short
 tf_staccount=st$project$hub_env$hub_location_short
 tf_container=tfstate-$project
-image_publisher="Canonical"
-image_offer="0001-com-ubuntu-server-jammy"
-image_sku="22_04-lts-gen2"
 
 # AKS Version
 kubernetes_version="1.28.9"

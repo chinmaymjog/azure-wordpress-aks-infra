@@ -4,25 +4,26 @@ stages:
   - deploy_database
 
 image:
-  name: hashicorp/terraform:1.3.7
+  name: chinmaymjog/cicd-toolkit:latest
   entrypoint:
-    - '/usr/bin/env'
-    - 'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin'
+    - bash
 
 before_script:
-  - apk update && apk upgrade
-  - apk add curl bash openssl
-  - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-  - chmod +x ./kubectl
-  - mv ./kubectl /usr/local/bin/kubectl
-  - curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  - source ./global_variables
+  - az login --service-principal -u "$ARM_CLIENT_ID" -p "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" -o none
+  - az account set -s "$ARM_SUBSCRIPTION_ID"
+  - |
+    awk -F "=" '!/^$/ && !/^#/' global_variables | while read -r line; do
+        var=$(echo "$line" | cut -d'=' -f1)
+        value=$(echo "$line" | cut -d'=' -f2)
+        echo "$var = \"$(eval echo "$value")\""
+    done > global_variables.tfvars
 
-.az_login:
-  - az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID -o none
-  - az account set -s $ARM_SUBSCRIPTION_ID
-
-create_hub_rg:
+create_resources:
   stage: deploy_hub
-  image: mcr.microsoft.com/azure-cli
+  image: chinmaymjog/cicd-toolkit
   script:
-    - bash ./build.sh
+    - az --version
+    - kubectl version --client=true
+    - helm version
+    - terraform version

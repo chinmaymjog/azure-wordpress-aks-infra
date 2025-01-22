@@ -5,8 +5,6 @@ stages:
 
 image:
   name: chinmaymjog/cicd-toolkit:latest
-  entrypoint:
-    - bash
 
 before_script:
   - source ./global_variables
@@ -23,7 +21,4 @@ create_resources:
   stage: deploy_hub
   image: chinmaymjog/cicd-toolkit
   script:
-    - az --version
-    - kubectl version --client=true
-    - helm version
-    - terraform version
+    - bash build_hub.sh

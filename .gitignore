@@ -1,13 +1,24 @@
-**/.terraform
-**/.terraform/*
-**/.terraform.*
+# Terraform directories and files
+**/.terraform/
 **/*.tfstate
 **/*.tfstate.backup
+**/.terraform.lock.hcl
+
+# Environment files
 **/.env
+
+# Credentials and sensitive files
 **/creds
-k8s
+**/auth
+**/htaccess
+
+# Kubernetes-related files
+**/k8s
 **/azurek8s*
+**/values.yaml
+
+# Temporary and to-do files
 **/ToDo
-**/global_aks.tfvars
-**/global_hub.tfvars
-**/global_variables.tfvars
+
+# Terraform variable files
+**/global_*.tfvars

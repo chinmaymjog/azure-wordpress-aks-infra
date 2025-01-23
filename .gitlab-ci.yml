@@ -53,8 +53,8 @@ create_hub:
     ENV: hub
     LOCATION_SHORT: weu
   script:
-    - cd ./hub || exit
     - cat global_variables.tfvars > final.tfvars
+    - cd ./hub || exit
     - *terraform_init
     - *terraform_plan
   extends: .deploy_ref

@@ -26,8 +26,8 @@ image:
 
 .deploy_ref:
   when: manual
-  tags:
-    - k8s
+  # tags:
+  #   - k8s
 
 create_resources:
   stage: deploy_hub

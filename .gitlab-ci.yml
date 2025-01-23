@@ -6,19 +6,44 @@ stages:
 image:
   name: chinmaymjog/cicd-toolkit:latest
 
-before_script:
-  - source ./global_variables
-  - az login --service-principal -u "$ARM_CLIENT_ID" -p "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" -o none
-  - az account set -s "$ARM_SUBSCRIPTION_ID"
+.terraform_init: &terraform_init
   - |
-    awk -F "=" '!/^$/ && !/^#/' global_variables | while read -r line; do
-        var=$(echo "$line" | cut -d'=' -f1)
-        value=$(echo "$line" | cut -d'=' -f2)
-        echo "$var = \"$(eval echo "$value")\""
-    done > global_variables.tfvars
+    terraform init \
+    -backend-config="resource_group_name=$hub_rgname" \
+    -backend-config="storage_account_name=$tf_staccount" \
+    -backend-config="container_name=$tf_container" \
+    -backend-config="key=$project-$ENV-$LOCATION_SHORT.tfstate"
+
+.tfvars_prepare: &tfvars_prepare
+  - terraform -chdir=hub output > global_hub.tfvars
+  - cat global_variables.tfvars global_hub.tfvars > final.tfvars
+
+.terraform_plan: &terraform_plan
+  - terraform plan -var-file="$RESOURCE-$ENV-$LOCATION_SHORT-terraform.tfvars" -var-file=final.tfvars # -auto-approve
+
+.terraform_apply: &terraform_apply
+  - terraform apply -var-file="$RESOURCE-$ENV-$LOCATION_SHORT-terraform.tfvars" -var-file=final.tfvars -auto-approve
+
+.deploy_ref:
+  when: manual
+  tags:
+    - k8s
 
 create_resources:
   stage: deploy_hub
-  image: chinmaymjog/cicd-toolkit
   script:
     - bash build_hub.sh
+  extends: .deploy_ref
+
+create_hub:
+  stage: deploy_hub
+  variables:
+    RESOURCE: shared
+    ENV: hub
+    LOCATION_SHORT: weu
+  script:
+    - referance[]
+    - cd ./hub || exit
+    - *terraform_init
+    - *terraform_plan
+  extends: .deploy_ref

@@ -31,6 +31,12 @@ resource "azurerm_kubernetes_cluster" "aks" {
     orchestrator_version = var.kubernetes_version
     vnet_subnet_id       = azurerm_subnet.aks-snet.id
     max_pods             = 110
+
+    upgrade_settings {
+      drain_timeout_in_minutes      = 0
+      max_surge                     = "10%"
+      node_soak_duration_in_minutes = 0
+    }
   }
 
   identity {
@@ -55,10 +61,8 @@ resource "azurerm_kubernetes_cluster" "aks" {
   network_profile {
     load_balancer_sku = "standard"
     network_plugin    = "azure"
-    #network_policy     = "azure"         
-    #docker_bridge_cidr = "172.17.0.1/16"
-    dns_service_ip = var.dns_service_ip
-    service_cidr   = var.service_cidr
+    dns_service_ip    = var.dns_service_ip
+    service_cidr      = var.service_cidr
     load_balancer_profile {
       outbound_ip_address_ids = [azurerm_public_ip.outbound-ip.id]
     }
@@ -66,7 +70,10 @@ resource "azurerm_kubernetes_cluster" "aks" {
 
   role_based_access_control_enabled = "true"
   azure_policy_enabled              = "true"
-
+  azure_active_directory_role_based_access_control {
+    admin_group_object_ids = []
+    azure_rbac_enabled     = true
+  }
   tags = var.tags
 }
 

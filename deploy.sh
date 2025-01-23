@@ -72,7 +72,7 @@ terraform init \
     -backend-config="container_name=$tf_container" \
     -backend-config="key=$project-$hub_env-$hub_location_short.tfstate"
 
-terraform apply -var-file=hub-terraform.tfvars -var-file=../global_variables.tfvars # -auto-approve
+terraform apply -var-file=shared-hub-weu-terraform.tfvars -var-file=../global_variables.tfvars # -auto-approve
 cd ..
 
 # # Terraform initialization and apply for AKS

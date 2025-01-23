@@ -59,37 +59,37 @@ create_storage_container() {
 # Main script execution starts here
 initiate
 
-# # Hub resources creation
-# create_resource_group "$hub_rgname" "$hub_location"
-# create_storage_account "$tf_staccount" "$hub_rgname" "$hub_location"
-# create_storage_container "$tf_container" "$tf_staccount"
+# Hub resources creation
+create_resource_group "$hub_rgname" "$hub_location"
+create_storage_account "$tf_staccount" "$hub_rgname" "$hub_location"
+create_storage_container "$tf_container" "$tf_staccount"
 
-# # Terraform initialization and apply for Hub
-# cd ./hub || exit
-# terraform init \
-#     -backend-config="resource_group_name=$hub_rgname" \
-#     -backend-config="storage_account_name=$tf_staccount" \
-#     -backend-config="container_name=$tf_container" \
-#     -backend-config="key=$project-$hub_env-$hub_location_short.tfstate"
+# Terraform initialization and apply for Hub
+cd ./hub || exit
+terraform init \
+    -backend-config="resource_group_name=$hub_rgname" \
+    -backend-config="storage_account_name=$tf_staccount" \
+    -backend-config="container_name=$tf_container" \
+    -backend-config="key=$project-$hub_env-$hub_location_short.tfstate"
 
-# terraform apply -var-file=hub-terraform.tfvars -var-file=../global_variables.tfvars # -auto-approve
-# cd ..
+terraform apply -var-file=hub-terraform.tfvars -var-file=../global_variables.tfvars # -auto-approve
+cd ..
 
 # # Terraform initialization and apply for AKS
-# cd ./aks || exit
-# terraform -chdir=../hub output > ../global_hub.tfvars
-# cat ../global_variables.tfvars ../global_hub.tfvars > ../global_aks.tfvars
+cd ./aks || exit
+terraform -chdir=../hub output > ../global_hub.tfvars
+cat ../global_variables.tfvars ../global_hub.tfvars > ../global_aks.tfvars
 
-# aks_env="lab"
-# aks_location_short="weu"
-# terraform init \
-#     -backend-config="resource_group_name=$hub_rgname" \
-#     -backend-config="storage_account_name=$tf_staccount" \
-#     -backend-config="container_name=$tf_container" \
-#     -backend-config="key=aks-$project-$aks_env-$aks_location_short.tfstate"
+aks_env="lab"
+aks_location_short="weu"
+terraform init \
+    -backend-config="resource_group_name=$hub_rgname" \
+    -backend-config="storage_account_name=$tf_staccount" \
+    -backend-config="container_name=$tf_container" \
+    -backend-config="key=aks-$project-$aks_env-$aks_location_short.tfstate"
 
-# terraform plan -var-file="aks-$aks_env-$aks_location_short-terraform.tfvars" -var-file=../global_aks.tfvars # -auto-approve
-# cd ..
+terraform apply -var-file="aks-$aks_env-$aks_location_short-terraform.tfvars" -var-file=../global_aks.tfvars # -auto-approve
+cd ..
 
 # Terraform initialization and apply for database
 cd ./database || exit
@@ -104,5 +104,5 @@ terraform init \
     -backend-config="container_name=$tf_container" \
     -backend-config="key=aks-$project-$db_env-$db_location_short.tfstate"
 
-terraform plan -var-file="db-$db_env-$db_location_short-terraform.tfvars" -var-file=../global_aks.tfvars # -auto-approve
+terraform apply -var-file="db-$db_env-$db_location_short-terraform.tfvars" -var-file=../global_aks.tfvars # -auto-approve
 cd ..

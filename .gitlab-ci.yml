@@ -7,8 +7,15 @@ image:
   name: chinmaymjog/cicd-toolkit:latest
 
 before_script:
+  - source ./global_variables
   - az login --service-principal -u "$ARM_CLIENT_ID" -p "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" -o none
   - az account set -s "$ARM_SUBSCRIPTION_ID"
+  - |
+    awk -F "=" '!/^$/ && !/^#/' global_variables | while read -r line; do
+      var=$(echo "$line" | cut -d'=' -f1)
+      value=$(echo "$line" | cut -d'=' -f2)
+      echo "$var = \"$(eval echo "$value")\""
+    done > global_variables.tfvars
 
 .terraform_init: &terraform_init
   - |

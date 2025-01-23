@@ -42,7 +42,6 @@ create_hub:
     ENV: hub
     LOCATION_SHORT: weu
   script:
-    - referance[]
     - cd ./hub || exit
     - *terraform_init
     - *terraform_plan

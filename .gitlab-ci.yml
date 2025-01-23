@@ -31,10 +31,10 @@ before_script:
   - cat global_variables.tfvars global_hub.tfvars > final.tfvars
 
 .terraform_plan: &terraform_plan
-  - terraform plan -var-file="$RESOURCE-$ENV-$LOCATION_SHORT-terraform.tfvars" -var-file=final.tfvars # -auto-approve
+  - terraform plan -var-file="$RESOURCE-$ENV-$LOCATION_SHORT-terraform.tfvars" -var-file=../final.tfvars # -auto-approve
 
 .terraform_apply: &terraform_apply
-  - terraform apply -var-file="$RESOURCE-$ENV-$LOCATION_SHORT-terraform.tfvars" -var-file=final.tfvars -auto-approve
+  - terraform apply -var-file="$RESOURCE-$ENV-$LOCATION_SHORT-terraform.tfvars" -var-file=../final.tfvars -auto-approve
 
 .deploy_ref:
   when: manual

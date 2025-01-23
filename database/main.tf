@@ -10,7 +10,7 @@ module "database" {
   db_subnet_id      = var.db_subnet_id
   key_vault_id      = var.key_vault_id
   mysql_dns_zone_id = var.mysql_dns_zone_id
-  
+
   tags = {
     "Project"               = var.project,
     "Environment"           = var.env,

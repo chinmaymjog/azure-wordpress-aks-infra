@@ -26,13 +26,13 @@ tf_staccount=st$project$hub_env$hub_location_short
 tf_container=tfstate-$project
 
 # AKS Version
-kubernetes_version="1.28.9"
+kubernetes_version="1.30.7"
 
 # Helm variables
-kured_version="5.4.5"
+kured_version="5.6.0"
 kured_repository="https://kubereboot.github.io/charts"
-ingress_nginx_version="4.10.1"
+ingress_nginx_version="4.12.0"
 ingress_nginx_repository="https://kubernetes.github.io/ingress-nginx"
-cert_manager_version="1.15.0"
+cert_manager_version="1.16.3"
 cert_manager_repository="https://charts.jetstack.io"
 support_email="maintainer@example.com"

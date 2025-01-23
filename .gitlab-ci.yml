@@ -16,6 +16,7 @@ before_script:
       value=$(echo "$line" | cut -d'=' -f2)
       echo "$var = \"$(eval echo "$value")\""
     done > global_variables.tfvars
+  - touch final.tfvars
 
 .terraform_init: &terraform_init
   - |

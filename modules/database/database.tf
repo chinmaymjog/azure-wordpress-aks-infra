@@ -49,7 +49,7 @@ resource "azurerm_mysql_flexible_server" "mysql" {
     size_gb           = var.dbsize
   }
   backup_retention_days = "30"
-  zone                  = "3"
+  zone                  = "1"
   delegated_subnet_id   = var.db_subnet_id
   private_dns_zone_id   = var.mysql_dns_zone_id
 

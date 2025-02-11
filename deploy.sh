@@ -102,7 +102,7 @@ terraform init \
     -backend-config="resource_group_name=$hub_rgname" \
     -backend-config="storage_account_name=$tf_staccount" \
     -backend-config="container_name=$tf_container" \
-    -backend-config="key=aks-$project-$db_env-$db_location_short.tfstate"
+    -backend-config="key=db-$project-$db_env-$db_location_short.tfstate"
 
 terraform apply -var-file="db-$db_env-$db_location_short-terraform.tfvars" -var-file=../global_aks.tfvars # -auto-approve
 cd ..

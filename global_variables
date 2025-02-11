@@ -26,7 +26,7 @@ tf_staccount=st$project$hub_env$hub_location_short
 tf_container=tfstate-$project
 
 # AKS Version
-kubernetes_version="1.30.7"
+kubernetes_version="1.29.11"
 
 # Helm variables
 kured_version="5.6.0"

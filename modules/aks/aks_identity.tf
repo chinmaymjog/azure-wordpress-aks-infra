@@ -1,7 +1,7 @@
 resource "azurerm_user_assigned_identity" "identity" {
   resource_group_name = azurerm_resource_group.rg_aks.name
   location            = var.location
-  name                = "id-aks-${var.project}-${var.env}-${var.location}"
+  name                = "id-aks-${var.project}-${var.env}-${var.location_short}"
   lifecycle {
     prevent_destroy = "true"
   }

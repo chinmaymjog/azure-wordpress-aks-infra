@@ -54,7 +54,7 @@ resource "azurerm_mysql_flexible_server" "mysql" {
   private_dns_zone_id   = var.mysql_dns_zone_id
 
   lifecycle {
-    prevent_destroy = "true"
+    prevent_destroy = true
   }
   tags = var.tags
 }

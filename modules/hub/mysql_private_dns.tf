@@ -3,7 +3,7 @@ resource "azurerm_private_dns_zone" "mysql-dns" {
   resource_group_name = var.rgname
   tags                = var.tags
   lifecycle {
-    prevent_destroy = "true"
+    prevent_destroy = true
   }
 }
 

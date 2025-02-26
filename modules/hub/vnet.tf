@@ -5,7 +5,7 @@ resource "azurerm_virtual_network" "vnet" {
   address_space       = var.vnet_ip_block
 
   lifecycle {
-    prevent_destroy = "true"
+    prevent_destroy = true
   }
   tags = var.tags
 }

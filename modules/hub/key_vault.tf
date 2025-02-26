@@ -13,7 +13,7 @@ resource "azurerm_key_vault" "kv" {
   ]
 
   lifecycle {
-    prevent_destroy = "true"
+    prevent_destroy = true
   }
   /*
   network_acls {

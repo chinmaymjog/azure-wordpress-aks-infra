@@ -8,7 +8,7 @@ resource "azurerm_log_analytics_workspace" "log" {
   resource_group_name = var.rgname
 
   lifecycle {
-    prevent_destroy = "true"
+    prevent_destroy = true
   }
   tags = var.tags
 }

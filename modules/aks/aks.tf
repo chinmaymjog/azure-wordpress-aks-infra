@@ -6,7 +6,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   dns_prefix          = "aks-${var.env}"
 
   lifecycle {
-    prevent_destroy = "true"
+    prevent_destroy = true
   }
 
   linux_profile {

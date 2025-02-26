@@ -9,7 +9,7 @@ resource "azurerm_container_registry" "cr" {
     azurerm_virtual_network.vnet
   ]
   lifecycle {
-    prevent_destroy = "true"
+    prevent_destroy = true
   }
   /*
   network_rule_set {

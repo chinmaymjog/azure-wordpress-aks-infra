@@ -3,7 +3,7 @@ resource "azurerm_user_assigned_identity" "identity" {
   location            = var.location
   name                = "id-aks-${var.project}-${var.env}-${var.location_short}"
   lifecycle {
-    prevent_destroy = "true"
+    prevent_destroy = "false"
   }
   tags = var.tags
 }

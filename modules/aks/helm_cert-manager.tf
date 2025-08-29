@@ -1,20 +1,3 @@
-resource "null_resource" "crd" {
-  depends_on = [
-    azurerm_kubernetes_cluster.aks,
-    local_file.azurek8s
-  ]
-  triggers = {
-    version = var.cert_manager_version
-  }
-
-  provisioner "local-exec" {
-    command = "kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v${var.cert_manager_version}/cert-manager.crds.yaml"
-    environment = {
-      KUBECONFIG = "./azurek8s"
-    }
-  }
-}
-
 resource "kubernetes_namespace" "cert-manager" {
   depends_on = [
     azurerm_kubernetes_cluster.aks,
@@ -48,6 +31,11 @@ resource "helm_release" "cert-manager" {
   version    = var.cert_manager_version
 
   namespace = kubernetes_namespace.cert-manager.metadata.0.name
+
+  set {
+    name  = "installCRDs"
+    value = "true"
+  }
 }
 
 locals {
@@ -86,40 +74,20 @@ spec:
 EOF
 }
 
-resource "null_resource" "cert_manager_clusterissuer_staging" {
+resource "kubernetes_manifest" "clusterissuer_staging" {
   depends_on = [
-    null_resource.crd,
-    local_file.azurek8s
+    helm_release.cert-manager
   ]
   count = var.env == "lab" || var.env == "dev" || var.env == "preprod" ? 1 : 0
-  triggers = {
-    version = var.cert_manager_version
-  }
 
-  provisioner "local-exec" {
-    command = "kubectl apply -f - <<EOF\n${local.clusterissuer_staging}\nEOF"
-
-    environment = {
-      KUBECONFIG = "./azurek8s"
-    }
-  }
+  manifest = yamldecode(local.clusterissuer_staging)
 }
 
-resource "null_resource" "cert_manager_clusterissuer_prod" {
+resource "kubernetes_manifest" "clusterissuer_prod" {
   depends_on = [
-    null_resource.crd,
-    local_file.azurek8s
+    helm_release.cert-manager
   ]
   count = var.env == "prod" ? 1 : 0
-  triggers = {
-    version = var.cert_manager_version
-  }
 
-  provisioner "local-exec" {
-    command = "kubectl apply -f - <<EOF\n${local.clusterissuer_prod}\nEOF"
-
-    environment = {
-      KUBECONFIG = "./azurek8s"
-    }
-  }
+  manifest = yamldecode(local.clusterissuer_prod)
 }

@@ -56,6 +56,35 @@ create_storage_container() {
     fi
 }
 
+terraform_deploy() {
+    local component=$1
+    local env=$2
+    local location=$3
+    local action=${4:-plan}
+
+    cd "./$component" || exit
+    terraform init \
+        -backend-config="resource_group_name=$hub_rgname" \
+        -backend-config="storage_account_name=$tf_staccount" \
+        -backend-config="container_name=$tf_container" \
+        -backend-config="key=$component-$project-$env-$location.tfstate" -reconfigure
+
+    if [ $env == "hub" ]; then
+        terraform $action -var-file=shared-hub-weu-terraform.tfvars -var-file=../global_variables.tfvars # -auto-approve
+    else
+        terraform -chdir=../hub output > ../global_hub.tfvars
+        is_empty=$(cat ../global_hub.tfvars | grep "No outputs found")
+        if [ -z "$is_empty" ]; then
+            cat ../global_variables.tfvars ../global_hub.tfvars > ../global_aks.tfvars
+            terraform $action -var-file="$component-$env-$location-terraform.tfvars" -var-file=../global_aks.tfvars # -auto-approve
+        else
+            echo "Hub outputs are empty. Cannot proceed with $component deployment."
+            exit 1
+        fi
+    fi
+    cd ..
+}
+
 # Main script execution starts here
 initiate
 
@@ -65,44 +94,7 @@ create_storage_account "$tf_staccount" "$hub_rgname" "$hub_location"
 create_storage_container "$tf_container" "$tf_staccount"
 
 # Terraform initialization and apply for Hub
-cd ./hub || exit
-terraform init \
-    -backend-config="resource_group_name=$hub_rgname" \
-    -backend-config="storage_account_name=$tf_staccount" \
-    -backend-config="container_name=$tf_container" \
-    -backend-config="key=$project-$hub_env-$hub_location_short.tfstate"
+terraform_deploy "hub" "hub" "weu" "plan"
 
-terraform apply -var-file=shared-hub-weu-terraform.tfvars -var-file=../global_variables.tfvars # -auto-approve
-cd ..
-
-# # Terraform initialization and apply for AKS
-cd ./aks || exit
-terraform -chdir=../hub output > ../global_hub.tfvars
-cat ../global_variables.tfvars ../global_hub.tfvars > ../global_aks.tfvars
-
-aks_env="lab"
-aks_location_short="weu"
-terraform init \
-    -backend-config="resource_group_name=$hub_rgname" \
-    -backend-config="storage_account_name=$tf_staccount" \
-    -backend-config="container_name=$tf_container" \
-    -backend-config="key=aks-$project-$aks_env-$aks_location_short.tfstate"
-
-terraform apply -var-file="aks-$aks_env-$aks_location_short-terraform.tfvars" -var-file=../global_aks.tfvars # -auto-approve
-cd ..
-
-# Terraform initialization and apply for database
-cd ./database || exit
-terraform -chdir=../hub output > ../global_hub.tfvars
-cat ../global_variables.tfvars ../global_hub.tfvars > ../global_aks.tfvars
-
-db_env="lab"
-db_location_short="weu"
-terraform init \
-    -backend-config="resource_group_name=$hub_rgname" \
-    -backend-config="storage_account_name=$tf_staccount" \
-    -backend-config="container_name=$tf_container" \
-    -backend-config="key=db-$project-$db_env-$db_location_short.tfstate"
-
-terraform apply -var-file="db-$db_env-$db_location_short-terraform.tfvars" -var-file=../global_aks.tfvars # -auto-approve
-cd ..
+terraform_deploy "aks" "lab" "weu" "plan"
+terraform_deploy "db" "lab" "weu" "plan"

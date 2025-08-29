@@ -14,7 +14,7 @@
 #
 #####################################################
 
-project="k8s"
+project="k8s21551"
 username="manage"
 
 # HUB variables 

@@ -12,9 +12,8 @@ module "database" {
   mysql_dns_zone_id = var.mysql_dns_zone_id
 
   tags = {
-    "Project"               = var.project,
-    "Environment"           = var.env,
-    "Location"              = var.location,
-    "AccountableDepartment" = "Engineering"
+    "Project"     = var.project,
+    "Environment" = var.env,
+    "Location"    = var.location,
   }
 }

@@ -13,9 +13,8 @@ module "hub" {
   authorized_ip_range      = var.authorized_ip_range
 
   tags = {
-    "Project"               = var.project,
-    "Environment"           = var.hub_env,
-    "Location"              = var.hub_location,
-    "AccountableDepartment" = "Engineering"
+    "Project"     = var.project,
+    "Environment" = var.hub_env,
+    "Location"    = var.hub_location,
   }
 }

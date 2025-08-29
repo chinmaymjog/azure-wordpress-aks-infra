@@ -13,8 +13,8 @@ module "aks" {
   os_disk_size_gb          = var.os_disk_size_gb
   os_disk_type             = var.os_disk_type
   kubernetes_version       = var.kubernetes_version
-  acrname                  = var.acrname
-  log_id                   = var.log_id
+  acrname                  = data.terraform_remote_state.hub.outputs.container_registry_name
+  log_id                   = data.terraform_remote_state.hub.outputs.log_analytics_workspace_id
   vnet                     = var.vnet
   nodepool_subnet          = var.nodepool_subnet
   dns_service_ip           = var.dns_service_ip
@@ -26,14 +26,13 @@ module "aks" {
   cert_manager_version     = var.cert_manager_version
   cert_manager_repository  = var.cert_manager_repository
   support_email            = var.support_email
-  key_vault_id             = var.key_vault_id
+  key_vault_id             = data.terraform_remote_state.hub.outputs.key_vault_id
   resources_subnet         = var.resources_subnet
   hub_rgname               = var.hub_rgname
 
   tags = {
-    "Project"               = var.project,
-    "Environment"           = var.env,
-    "Location"              = var.location,
-    "AccountableDepartment" = "Engineering"
+    "Project"     = var.project,
+    "Environment" = var.env,
+    "Location"    = var.location,
   }
 }

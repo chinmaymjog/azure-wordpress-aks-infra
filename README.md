@@ -1,6 +1,7 @@
 # Enterprise Azure Kubernetes (AKS) Platform
+> **Solution Pillar**: Infrastructure as Code (IaC) for Solution B.
 
-This repository provides an enterprise-grade solution for deploying a secure, multi-environment Azure Kubernetes Service (AKS) infrastructure using Terraform and Bash. It follows a **Hub-and-Spoke** network topology to centralize shared services (like Container Registries and Key Vaults) and provides network isolation for spokes (dev, prod).
+This repository provides an enterprise-grade solution for deploying a secure, multi-environment AKS infrastructure. It is the foundational layer for the **[WordPress Enterprise Boilerplate ecosystem](https://github.com/chinmaymjog/wp-boilerplate)**.
 
 ## 🚀 Key Features
 

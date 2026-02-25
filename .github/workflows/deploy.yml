@@ -1,0 +1,70 @@
+name: Deploy Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'hub/**'
+      - 'aks/**'
+      - 'database/**'
+      - 'global_variables'
+      - 'deploy.sh'
+  workflow_dispatch:
+    inputs:
+      component:
+        description: 'Component to deploy'
+        required: true
+        default: 'hub'
+        type: choice
+        options:
+          - hub
+          - aks
+          - db
+      action:
+        description: 'Terraform Action'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+
+env:
+  ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+  ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.5.0
+
+      - name: Setup Azure CLI
+        run: |
+          curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+      - name: Create .env
+        run: |
+          cat << 'EOF' > .env
+          export ARM_CLIENT_ID="${{ secrets.ARM_CLIENT_ID }}"
+          export ARM_CLIENT_SECRET="${{ secrets.ARM_CLIENT_SECRET }}"
+          export ARM_TENANT_ID="${{ secrets.ARM_TENANT_ID }}"
+          export ARM_SUBSCRIPTION_ID="${{ secrets.ARM_SUBSCRIPTION_ID }}"
+          EOF
+
+      - name: Run Deploy Script
+        run: |
+          # If triggered via workflow_dispatch, use inputs. Otherwise default to 'hub plan'
+          COMPONENT="${{ github.event.inputs.component || 'hub' }}"
+          ACTION="${{ github.event.inputs.action || 'plan' }}"
+          chmod +x ./deploy.sh
+          ./deploy.sh "$COMPONENT" "$ACTION"

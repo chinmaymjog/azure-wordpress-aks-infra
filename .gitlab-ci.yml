@@ -1,86 +1,66 @@
 stages:
-  - create_resources
   - plan_hub
-  - plan_aks
-  - plan_database
   - deploy_hub
+  - plan_aks
   - deploy_aks
-  - deploy_database
 
 image:
   name: chinmaymjog/cicd-toolkit:latest
 
+variables:
+  # The environment variables below should be configured in GitLab CI/CD Settings
+  # ARM_CLIENT_ID: $ARM_CLIENT_ID
+  # ARM_CLIENT_SECRET: $ARM_CLIENT_SECRET
+  # ARM_TENANT_ID: $ARM_TENANT_ID
+  # ARM_SUBSCRIPTION_ID: $ARM_SUBSCRIPTION_ID
+  ENV: lab
+  LOCATION_SHORT: weu
+
 before_script:
-  - source ./global_variables
-  - az login --service-principal -u "$ARM_CLIENT_ID" -p "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" -o none
-  - az account set -s "$ARM_SUBSCRIPTION_ID"
+  # Create the .env file expected by deploy.sh using GitLab variables
   - |
-    awk -F "=" '!/^$/ && !/^#/' global_variables | while read -r line; do
-      var=$(echo "$line" | cut -d'=' -f1)
-      value=$(echo "$line" | cut -d'=' -f2)
-      echo "$var = \"$(eval echo "$value")\""
-    done > global_variables.tfvars
+    cat << EOF > .env
+    export ARM_CLIENT_ID="$ARM_CLIENT_ID"
+    export ARM_CLIENT_SECRET="$ARM_CLIENT_SECRET"
+    export ARM_TENANT_ID="$ARM_TENANT_ID"
+    export ARM_SUBSCRIPTION_ID="$ARM_SUBSCRIPTION_ID"
+    EOF
+  - chmod +x ./deploy.sh
 
-.terraform_init: &terraform_init
-  - |
-    terraform init \
-    -backend-config="resource_group_name=$hub_rgname" \
-    -backend-config="storage_account_name=$tf_staccount" \
-    -backend-config="container_name=$tf_container" \
-    -backend-config="key=$project-$ENV-$LOCATION_SHORT.tfstate"
-
-.tfvars_prepare: &tfvars_prepare
-  - terraform -chdir=hub output > global_hub.tfvars
-  - cat global_variables.tfvars global_hub.tfvars > final.tfvars
-
-.terraform_plan: &terraform_plan
-  - terraform plan -var-file="$RESOURCE-$ENV-$LOCATION_SHORT-terraform.tfvars" -var-file=../final.tfvars # -auto-approve
-
-.terraform_apply: &terraform_apply
-  - terraform apply -var-file="$RESOURCE-$ENV-$LOCATION_SHORT-terraform.tfvars" -var-file=../final.tfvars -auto-approve
-
-.plan_ref:
-  when: manual
-  tags:
-    - k8s
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-
-.apply_ref:
-  when: manual
-  tags:
-    - k8s
-  rules:
-    - if: $CI_COMMIT_TAG =~ /v\d+\.\d+\.\d+$/
-    
-create_resources:
-  stage: create_resources
-  script:
-    - bash build_hub.sh
-  extends: .apply_ref
-
+# ==========================================
+# HUB Component
+# ==========================================
 plan_hub:
   stage: plan_hub
-  variables:
-    RESOURCE: shared
-    ENV: hub
-    LOCATION_SHORT: weu
   script:
-    - cat global_variables.tfvars > final.tfvars
-    - cd ./hub || exit
-    - *terraform_init
-    - *terraform_plan
-  extends: .plan_ref
+    - ./deploy.sh hub plan $ENV $LOCATION_SHORT
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH == "develop"
 
 deploy_hub:
   stage: deploy_hub
-  variables:
-    RESOURCE: shared
-    ENV: hub
-    LOCATION_SHORT: weu
   script:
-    - cat global_variables.tfvars > final.tfvars
-    - cd ./hub || exit
-    - *terraform_init
-    - *terraform_apply
-  extends: .apply_ref
+    - ./deploy.sh hub apply $ENV $LOCATION_SHORT
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH == "develop"
+
+# ==========================================
+# AKS Component
+# ==========================================
+plan_aks:
+  stage: plan_aks
+  script:
+    - ./deploy.sh aks plan $ENV $LOCATION_SHORT
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH == "develop"
+  needs: ["deploy_hub"]
+
+deploy_aks:
+  stage: deploy_aks
+  script:
+    - ./deploy.sh aks apply $ENV $LOCATION_SHORT
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  needs: ["plan_aks"]

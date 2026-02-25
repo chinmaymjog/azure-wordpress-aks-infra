@@ -1,7 +1,21 @@
-# Enterprise Azure Kubernetes (AKS) Platform
-> **Solution Pillar**: Infrastructure as Code (IaC) for Solution B.
+# 🏗️ Azure WordPress Stack: Tier 1 - Infrastructure
 
-This repository provides an enterprise-grade solution for deploying a secure, multi-environment AKS infrastructure. It is the foundational layer for the **[WordPress Enterprise Boilerplate ecosystem](https://github.com/chinmaymjog/wp-boilerplate)**.
+> **Part 1 of the Azure WordPress Stack ecosystem.**
+
+This repository provides an enterprise-grade Infrastructure-as-Code (IaC) solution for deploying a secure, multi-environment Azure Kubernetes Service (AKS) infrastructure. It is the foundational layer for hosting WordPress.
+
+## 🔗 Project Ecosystem Navigation
+
+You are currently at **Step 1: Infrastructure**.
+
+* **Next Step:** [Step 2: Base Docker Image (azure-wp-stack-docker-base)](https://github.com/chinmaymjog/azure-wp-stack-docker-base) - Build the optimized PHP/Nginx base image.
+* **Full Ecosystem:**
+  * 1️⃣ **Infrastructure** (You are here)
+  * 2️⃣ [Base Docker Image](https://github.com/chinmaymjog/azure-wp-stack-docker-base)
+  * 3️⃣ [Static Assets (Themes & Plugins)](https://github.com/chinmaymjog/azure-wp-stack-static-assets)
+  * 4️⃣ [Helm Chart Deployment & App Boilerplate](https://github.com/chinmaymjog/azure-wp-stack-helm-chart)
+
+---
 
 ## 🚀 Key Features
 

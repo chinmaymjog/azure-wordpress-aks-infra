@@ -4,9 +4,9 @@ resource "azurerm_virtual_network" "aks-vent" {
   address_space       = var.vnet
   location            = azurerm_resource_group.rg_aks.location
   resource_group_name = azurerm_resource_group.rg_aks.name
-  lifecycle {
-    prevent_destroy = true
-  }
+#  lifecycle {
+#    prevent_destroy = true
+#  }
   tags = var.tags
 }
 
@@ -25,9 +25,9 @@ resource "azurerm_public_ip" "inbound-ip" {
   allocation_method   = "Static"
   sku                 = "Standard"
   domain_name_label   = "inbound-aks-${var.project}-${var.env}-${var.location_short}"
-  lifecycle {
-    prevent_destroy = true
-  }
+#  lifecycle {
+#    prevent_destroy = true
+#  }
   tags = var.tags
 }
 
@@ -38,9 +38,9 @@ resource "azurerm_public_ip" "outbound-ip" {
   allocation_method   = "Static"
   sku                 = "Standard"
   domain_name_label   = "outbound-aks-${var.project}-${var.env}-${var.location_short}"
-  lifecycle {
-    prevent_destroy = true
-  }
+#  lifecycle {
+#    prevent_destroy = true
+#  }
   tags = var.tags
 }
 

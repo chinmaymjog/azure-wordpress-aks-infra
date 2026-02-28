@@ -94,18 +94,28 @@ variable "resources_subnet" {
   description = "Subnet for redis"
 }
 
-variable "tf_staccount" {
-  description = "Storage account for hub remote state"
-}
-
-variable "tf_container" {
-  description = "Container for hub remote state"
-}
-
-variable "hub_env" {
-  description = "Hub environment"
+# Global variables passed from global.auto.tfvars
+variable "hub_location" {
+  description = "Hub location"
+  default     = ""
 }
 
 variable "hub_location_short" {
   description = "Hub location short name"
+  default     = ""
+}
+
+variable "hub_env" {
+  description = "Hub environment"
+  default     = ""
+}
+
+variable "tf_staccount" {
+  description = "Storage account for hub remote state"
+  default     = ""
+}
+
+variable "tf_container" {
+  description = "Container for hub remote state"
+  default     = ""
 }

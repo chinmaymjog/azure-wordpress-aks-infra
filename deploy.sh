@@ -124,9 +124,15 @@ terraform_deploy() {
         else
             terraform $action -var-file="$var_file" -var-file="../global.auto.tfvars"
         fi
-    else
         # For non-hub components, we need the hub outputs
         echo "Fetching Hub outputs..."
+        # We must init the hub directory to ensure we can connect to the remote state
+        terraform -chdir=../hub init \
+            -backend-config="resource_group_name=${rg_name}" \
+            -backend-config="storage_account_name=${sa_name}" \
+            -backend-config="container_name=${container_name}" \
+            -backend-config="key=hub-${project}-hub-${location_short}.tfstate" -reconfigure > /dev/null
+            
         terraform -chdir=../hub output > ../global_hub.tfvars
         
         if grep -q "No outputs found" ../global_hub.tfvars; then

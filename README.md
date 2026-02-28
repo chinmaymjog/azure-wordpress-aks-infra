@@ -28,10 +28,39 @@ You are currently at **Step 1: Infrastructure**.
 
 ## 🏗️ Architecture
 
-This project implements a Hub-and-Spoke model in Azure:
+This project implements a **Hub-and-Spoke** model in Azure to ensure centralized governance and isolated workloads.
 
-- **Hub**: Contains shared infrastructure like the Private DNS zones, ACR, and global logging.
-- **Spokes**: Each spoke (e.g., `aks-lab-weu`) is an isolated VNet containing its own AKS cluster, peered to the hub for shared service access.
+```mermaid
+graph TD
+    subgraph "Hub (Shared Services)"
+        ACR[Azure Container Registry]
+        KV[Key Vault]
+        LAW[Log Analytics]
+        DNS[Private DNS Zones]
+    end
+
+    subgraph "Spoke: Dev Environment"
+        AKS_DEV[AKS Cluster]
+        DB_DEV[(MySQL Flexible Server)]
+        VNET_DEV[VNet Dev]
+    end
+
+    subgraph "Spoke: Prod Environment"
+        AKS_PROD[AKS Cluster]
+        DB_PROD[(MySQL Flexible Server)]
+        VNET_PROD[VNet Prod]
+    end
+
+    VNET_DEV <-->|Peering| ACR
+    VNET_PROD <-->|Peering| ACR
+    AKS_DEV --> KV
+    AKS_PROD --> KV
+    AKS_DEV --> DB_DEV
+    AKS_PROD --> DB_PROD
+```
+
+- **Hub**: Central management for shared images (ACR), secrets (KV), and logs (LAW).
+- **Spokes**: Independent environments (Lab, Dev, Prod) that consume Hub services via VNet Peering.
 
 ---
 
@@ -49,15 +78,21 @@ This project implements a Hub-and-Spoke model in Azure:
 
 ---
 
-## 🏁 Getting Started
+## 🏁 Phase 1: Infrastructure Deployment (Terraform)
+
+The `deploy.sh` script manages the lifecycle of your core platform: Hub services and Spoke environments.
 
 ### 1. Prerequisites
-- Terraform (v1.3.x+)
-- Azure CLI
-- Azure Service Principal with `Contributor` rights.
+- **Terraform** (v1.3.x+)
+- **Azure CLI** (v2.x)
+- **Service Principal**: An SP with `Contributor` and `User Access Administrator` roles.
+- **SSH Key**: An RSA public key at `~/.ssh/id_rsa.pub` (for node access).
 
 ### 2. Configure Credentials
-Create a `.env` file (git-ignored) with your Azure details:
+Depending on your deployment method, you must provide Azure Service Principal credentials:
+
+#### For Local Deployment (via `deploy.sh`)
+Create a `.env` file in the root directory (git-ignored):
 ```bash
 export ARM_CLIENT_ID="<your-app-id>"
 export ARM_CLIENT_SECRET="<your-password>"
@@ -65,24 +100,50 @@ export ARM_TENANT_ID="<your-tenant-id>"
 export ARM_SUBSCRIPTION_ID="<your-subscription-id>"
 ```
 
-### 3. Deploy Infrastructure
-The `deploy.sh` script handles the complexity of state management, cross-module variable injection (Hub to AKS), and environment switching.
+#### For GitHub Actions (Forked Repo)
+Configure the same four variables as **GitHub Repository Secrets**.
 
-You can explicitly deploy to different environments (`lab`, `dev`, `preprod`, `prod`) by passing the environment argument.
+### 3. Project Configuration
+Customize your foundation in **`global.auto.tfvars`**:
+- **`project`**: A unique string for resource naming (e.g., `wp-stack`).
+- **`hub_location`**: Your primary Azure region (e.g., `westeurope`).
+- **⚠️ Scaling for Production**: By default, clusters use minimal tiers. To scale up, modify the environment-specific `.tfvars` files (e.g., `aks/aks-prod-weu-terraform.tfvars`) to use `Standard_D4ds_v5` nodes.
 
+### 4. Deploy Infrastructure
+The infrastructure **must** be deployed in this specific sequence:
+
+1. **Hub**: Shared networking, ACR, and Key Vault.
+   ```bash
+   ./deploy.sh hub apply
+   ```
+2. **Database**: Managed MySQL for your environment.
+   ```bash
+   ./deploy.sh db apply dev weu
+   ```
+3. **AKS**: The Kubernetes cluster.
+   ```bash
+   ./deploy.sh aks apply dev weu
+   ```
+
+### 5. Verify Deployment
+Once the AKS deployment finishes, verify access to your new cluster (assuming `project = "wp-stack"` and `env = "dev"`):
 ```bash
-# Example: Plan the Hub (Shared resources)
-./deploy.sh hub plan
+# 1. Get credentials for your cluster
+az aks get-credentials --resource-group rg-wp-stack-dev-weu --name aks-wp-stack-dev-weu
 
-# Example: Apply the Hub
-./deploy.sh hub apply
-
-# Example: Plan the AKS cluster for a specific environment (e.g., dev)
-./deploy.sh aks plan dev weu
-
-# Example: Apply the AKS cluster to the dev environment
-./deploy.sh aks apply dev weu
+# 2. Check node status
+kubectl get nodes
 ```
+
+---
+
+## � Next Steps: The Application Layer
+
+Infrastructure is only the foundation. To complete the WordPress stack, follow the sequence below:
+
+1.  **Build Your Image**: [azure-wp-stack-docker-base](https://github.com/chinmaymjog/azure-wp-stack-docker-base) - Create the optimized PHP/Nginx image.
+2.  **Statics & Assets**: [azure-wp-stack-static-assets](https://github.com/chinmaymjog/azure-wp-stack-static-assets) - Manage themes and plugins.
+3.  **Deployment**: [azure-wp-stack-helm-chart](https://github.com/chinmaymjog/azure-wp-stack-helm-chart) - Deploy the full application to your new AKS cluster.
 
 ### 4. Scaling for Production Workloads
 > [!NOTE]
@@ -105,8 +166,6 @@ To use these workflows:
 1. Fork or clone this repository to your own GitHub account.
 2. Configure your Azure credentials as GitHub Repository Secrets (e.g., `ARM_CLIENT_ID`, `ARM_CLIENT_SECRET`, `ARM_TENANT_ID`, `ARM_SUBSCRIPTION_ID`).
 3. During pull requests to `develop` or merges to `main`, the pipeline validates the Terraform plans for the `hub` and the various `aks` environments (`lab`, `dev`, `preprod`, `prod`). 
-
-*(Note: The embedded `.gitlab-ci.yml` files are used internally by the author for maintenance and can be ignored by standard GitHub users).*
 
 ---
 

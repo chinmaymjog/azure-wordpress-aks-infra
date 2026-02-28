@@ -1,6 +1,8 @@
 stages:
   - plan_hub
   - deploy_hub
+  - plan_db
+  - deploy_db
   - plan_aks
   - deploy_aks
 
@@ -13,7 +15,7 @@ variables:
   # ARM_CLIENT_SECRET: $ARM_CLIENT_SECRET
   # ARM_TENANT_ID: $ARM_TENANT_ID
   # ARM_SUBSCRIPTION_ID: $ARM_SUBSCRIPTION_ID
-  ENV: lab
+  ENV: dev
   LOCATION_SHORT: weu
 
 before_script:
@@ -33,17 +35,43 @@ before_script:
 plan_hub:
   stage: plan_hub
   script:
-    - ./deploy.sh hub plan $ENV $LOCATION_SHORT
+    - ./deploy.sh hub plan hub $LOCATION_SHORT
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH == "develop"
 
 deploy_hub:
   stage: deploy_hub
   script:
-    - ./deploy.sh hub apply $ENV $LOCATION_SHORT
+    - ./deploy.sh hub apply hub $LOCATION_SHORT
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH == "develop"
+
+# ==========================================
+# Database Component
+# ==========================================
+plan_db:
+  stage: plan_db
+  script:
+    - ./deploy.sh database plan $ENV $LOCATION_SHORT
+  parallel:
+    matrix:
+      - ENV: [lab, dev, preprod, prod]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH == "develop"
+  needs: ["deploy_hub"]
+
+deploy_db:
+  stage: deploy_db
+  script:
+    - ./deploy.sh database apply $ENV $LOCATION_SHORT
+  parallel:
+    matrix:
+      - ENV: [lab, dev, preprod, prod]
+  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  needs: ["plan_db"]
 
 # ==========================================
 # AKS Component
@@ -52,6 +80,9 @@ plan_aks:
   stage: plan_aks
   script:
     - ./deploy.sh aks plan $ENV $LOCATION_SHORT
+  parallel:
+    matrix:
+      - ENV: [lab, dev, preprod, prod]
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_BRANCH == "develop"
   needs: ["deploy_hub"]
@@ -60,6 +91,9 @@ deploy_aks:
   stage: deploy_aks
   script:
     - ./deploy.sh aks apply $ENV $LOCATION_SHORT
+  parallel:
+    matrix:
+      - ENV: [lab, dev, preprod, prod]
   when: manual
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

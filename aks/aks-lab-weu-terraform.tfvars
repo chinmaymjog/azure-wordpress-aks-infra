@@ -1,10 +1,10 @@
 location            = "westeurope"
 location_short      = "weu"
 env                 = "lab"
-node_vmsize         = "Standard_D4ads_v5"
-agent_count         = "2"
+node_vmsize         = "Standard_B2ms"
+agent_count         = "1"
 os_disk_size_gb     = "64"
-os_disk_type        = "Ephemeral"
+os_disk_type        = "Managed"
 vnet                = ["10.44.0.0/20"]
 nodepool_subnet     = ["10.44.0.0/21"]
 dns_service_ip      = "10.44.8.10"

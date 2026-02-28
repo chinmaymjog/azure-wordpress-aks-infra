@@ -1,6 +1,6 @@
 location       = "westeurope"
 location_short = "weu"
 env            = "lab"
-dbsku          = "GP_Standard_D4ds_v4"
-dbsize         = "64"
+dbsku          = "B_Standard_B1ms"
+dbsize         = "20"
 dbversion      = "8.0.21"

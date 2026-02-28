@@ -8,7 +8,7 @@ on:
       - 'hub/**'
       - 'aks/**'
       - 'database/**'
-      - 'global_variables'
+      - 'global.auto.tfvars'
       - 'deploy.sh'
   workflow_dispatch:
     inputs:
@@ -20,7 +20,15 @@ on:
         options:
           - hub
           - aks
-          - db
+          - database
+      environment:
+        description: 'Environment (for aks/database)'
+        required: false
+        default: 'dev'
+      location:
+        description: 'Location short (e.g. weu)'
+        required: false
+        default: 'weu'
       action:
         description: 'Terraform Action'
         required: true
@@ -66,5 +74,7 @@ jobs:
           # If triggered via workflow_dispatch, use inputs. Otherwise default to 'hub plan'
           COMPONENT="${{ github.event.inputs.component || 'hub' }}"
           ACTION="${{ github.event.inputs.action || 'plan' }}"
+          ENV="${{ github.event.inputs.environment || 'dev' }}"
+          LOC="${{ github.event.inputs.location || 'weu' }}"
           chmod +x ./deploy.sh
-          ./deploy.sh "$COMPONENT" "$ACTION"
+          ./deploy.sh "$COMPONENT" "$ACTION" "$ENV" "$LOC"

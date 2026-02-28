@@ -36,6 +36,18 @@ variable "tags" {
   description = "Tags"
 }
 
+variable "storage_account_tier" {
+  description = "Tier of the storage account (Standard or Premium)"
+  type        = string
+  default     = "Standard"
+}
+
+variable "storage_replication_type" {
+  description = "Replication type for the storage account"
+  type        = string
+  default     = "LRS"
+}
+
 variable "mysql_dns_zone_id" {
   description = "ID of mysql private DNS zone"
 }

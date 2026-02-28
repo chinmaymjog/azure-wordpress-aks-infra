@@ -1,14 +1,13 @@
 location            = "westeurope"
 location_short      = "weu"
-env                 = "lab"
+env                 = "preprod"
 node_vmsize         = "Standard_B2ms"
 agent_count         = "1"
 os_disk_size_gb     = "64"
 os_disk_type        = "Managed"
-vnet                = ["10.44.0.0/20"]
-nodepool_subnet     = ["10.44.0.0/21"]
-dns_service_ip      = "10.44.8.10"
-service_cidr        = "10.44.8.0/22"
-resources_subnet    = ["10.44.12.0/27"]
+vnet                = ["10.46.0.0/20"]
+nodepool_subnet     = ["10.46.0.0/21"]
+dns_service_ip      = "10.46.8.10"
+service_cidr        = "10.46.8.0/22"
+resources_subnet    = ["10.46.12.0/27"]
 authorized_ip_range = ["152.58.17.61"]
-

@@ -1,0 +1,6 @@
+location       = "westeurope"
+location_short = "weu"
+env            = "preprod"
+dbsku          = "B_Standard_B1ms"
+dbsize         = "20"
+dbversion      = "8.0.21"

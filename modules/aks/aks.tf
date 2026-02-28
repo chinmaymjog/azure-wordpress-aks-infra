@@ -89,3 +89,21 @@ resource "azurerm_key_vault_secret" "aks_secret" {
   key_vault_id = var.key_vault_id
   tags         = var.tags
 }
+
+resource "azurerm_kubernetes_cluster_node_pool" "additional_node_pools" {
+  for_each              = var.node_pools
+  
+  name                  = each.key
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.aks.id
+  vm_size               = each.value.vm_size
+  node_count            = lookup(each.value, "node_count", null)
+  auto_scaling_enabled  = lookup(each.value, "auto_scaling_enabled", true)
+  min_count             = lookup(each.value, "min_count", 1)
+  max_count             = lookup(each.value, "max_count", 3)
+  os_disk_size_gb       = lookup(each.value, "os_disk_size_gb", 64)
+  os_disk_type          = lookup(each.value, "os_disk_type", "Ephemeral")
+  vnet_subnet_id        = azurerm_subnet.aks-snet.id
+  max_pods              = 250
+  
+  tags                  = var.tags
+}

@@ -46,6 +46,20 @@ variable "os_disk_type" {
   description = "OS Disk type for agent nodes"
 }
 
+variable "node_pools" {
+  description = "Map of additional node pools to create"
+  type = map(object({
+    vm_size              = string
+    node_count           = optional(number)
+    auto_scaling_enabled = optional(bool)
+    min_count            = optional(number)
+    max_count            = optional(number)
+    os_disk_size_gb      = optional(number)
+    os_disk_type         = optional(string)
+  }))
+  default = {}
+}
+
 variable "kubernetes_version" {
   description = "Kubernetes version to deploy"
 }
@@ -74,33 +88,7 @@ variable "service_cidr" {
   description = "K8S service CIDR"
 }
 
-variable "kured_version" {
-  description = "Kured chart version"
-}
 
-variable "kured_repository" {
-  description = "Kured Repository"
-}
-
-variable "ingress_nginx_version" {
-  description = "Nginx ingress chart version"
-}
-
-variable "ingress_nginx_repository" {
-  description = "Nginx ingress Repository"
-}
-
-variable "cert_manager_version" {
-  description = "cert-manager chart version"
-}
-
-variable "cert_manager_repository" {
-  description = "cert-manager Repository"
-}
-
-variable "support_email" {
-  description = "email address for letsencrypt expiration email"
-}
 
 variable "key_vault_id" {
   description = "Id of key vault"

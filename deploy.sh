@@ -13,7 +13,7 @@ if [[ $# -eq 0 ]]; then
     echo "Usage: ./deploy.sh [component] [action] [env] [location_short]"
     echo "  component: hub, aks, or db"
     echo "  action:    plan, apply, or destroy (default: plan)"
-    echo "  env:       environment name (default: lab)"
+    echo "  env:       environment name (e.g., lab, dev, preprod, prod) (default: lab)"
     echo "  location:  location shortname (default: weu)"
     echo "Example: ./deploy.sh hub apply"
     exit 1
@@ -33,30 +33,18 @@ initiate() {
         exit 1
     fi
 
-    if [[ -f ./global_variables ]]; then
-        source ./global_variables
+    if [[ -f ./global.auto.tfvars ]]; then
+        # Parse project and hub_location for the shell script safely
+        project=$(grep -E '^\s*project\s*=' ./global.auto.tfvars | awk -F '"' '{print $2}')
+        hub_location=$(grep -E '^\s*hub_location\s*=' ./global.auto.tfvars | awk -F '"' '{print $2}')
     else
-        echo "Error: global_variables file not found."
+        echo "Error: global.auto.tfvars file not found."
         exit 1
     fi
 
     echo "Logging into Azure..."
     az login --service-principal -u "$ARM_CLIENT_ID" -p "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" -o none
     az account set -s "$ARM_SUBSCRIPTION_ID"
-
-    echo "Generating global_variables.tfvars..."
-    # Generate Terraform variables file safely
-    > global_variables.tfvars
-    while IFS='=' read -r var value || [[ -n "$var" ]]; do
-        # Output clean variables excluding comments and empty lines
-        if [[ ! "$var" =~ ^# ]] && [[ -n "$var" ]]; then
-            # Evaluate variable placeholders safely (e.g. $project)
-            eval_val=$(eval echo "$value")
-            # Remove any trailing comments from the line if they exist
-            eval_val=$(echo "$eval_val" | sed 's/ *#.*//')
-            echo "${var}=\"${eval_val}\"" >> global_variables.tfvars
-        fi
-    done < global_variables
 }
 
 # Function to ensure storage account and container exist
@@ -88,10 +76,14 @@ terraform_deploy() {
     local env=$3
     local location_short=$4
 
-    # The prefix changes if it's the hub or a spoke
     local tf_env=$env
     if [[ "$component" == "hub" ]]; then
         tf_env="hub"
+    fi
+
+    # Map db alias to database folder
+    if [[ "$component" == "db" ]]; then
+        component="database"
     fi
 
     local tf_prefix="shared"
@@ -101,6 +93,12 @@ terraform_deploy() {
 
     local state_key="${component}-${project}-${tf_env}-${location_short}.tfstate"
     local var_file="${tf_prefix}-${tf_env}-${location_short}-terraform.tfvars"
+    
+    # Treat database state and var files as environment-scoped (drop location)
+    if [[ "$component" == "database" ]]; then
+        state_key="${component}-${project}-${tf_env}.tfstate"
+        var_file="${tf_prefix}-${tf_env}-terraform.tfvars"
+    fi
 
     local rg_name="rg-${project}-hub-${LOCATION_SHORT}"
     local sa_name="st${project}hub${LOCATION_SHORT}"
@@ -122,9 +120,9 @@ terraform_deploy() {
 
     if [[ "$component" == "hub" ]]; then
         if [[ "$action" == "apply" || "$action" == "destroy" ]]; then
-            terraform $action -var-file="$var_file" -var-file=../global_variables.tfvars -auto-approve
+            terraform $action -var-file="$var_file" -var-file="../global.auto.tfvars" -auto-approve
         else
-            terraform $action -var-file="$var_file" -var-file=../global_variables.tfvars
+            terraform $action -var-file="$var_file" -var-file="../global.auto.tfvars"
         fi
     else
         # For non-hub components, we need the hub outputs
@@ -136,13 +134,10 @@ terraform_deploy() {
             exit 1
         fi
 
-        # Combine variables
-        cat ../global_variables.tfvars ../global_hub.tfvars > ../global_aks.tfvars
-
         if [[ "$action" == "apply" || "$action" == "destroy" ]]; then
-            terraform $action -var-file="$var_file" -var-file=../global_aks.tfvars -auto-approve
+            terraform $action -var-file="$var_file" -var-file=../global_hub.tfvars -var-file="../global.auto.tfvars" -auto-approve
         else
-            terraform $action -var-file="$var_file" -var-file=../global_aks.tfvars
+            terraform $action -var-file="$var_file" -var-file=../global_hub.tfvars -var-file="../global.auto.tfvars"
         fi
     fi
     cd ..

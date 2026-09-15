@@ -1,6 +1,6 @@
 location            = "westeurope"
 location_short      = "weu"
-env                 = "dev"
+env                 = "main"
 node_vmsize         = "Standard_B2ms"
 agent_count         = "1"
 os_disk_size_gb     = "64"

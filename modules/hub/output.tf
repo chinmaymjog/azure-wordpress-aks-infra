@@ -2,6 +2,10 @@ output "acrname" {
   value = azurerm_container_registry.cr.name
 }
 
+output "acr_login_server" {
+  value = azurerm_container_registry.cr.login_server
+}
+
 output "key_vault_id" {
   value = azurerm_key_vault.kv.id
 }

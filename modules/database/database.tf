@@ -30,7 +30,7 @@ resource "azurerm_key_vault_secret" "db_url" {
 
 resource "azurerm_resource_group" "rg_database" {
   name     = "rg-database-${var.project}-${var.env}-${var.location_short}"
-  location = "West Europe"
+  location = var.location
   tags     = var.tags
 }
 
@@ -54,16 +54,9 @@ resource "azurerm_mysql_flexible_server" "mysql" {
   private_dns_zone_id   = var.mysql_dns_zone_id
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
   tags = var.tags
-}
-
-resource "azurerm_mysql_flexible_server_configuration" "require_secure_transport" {
-  name                = "require_secure_transport"
-  resource_group_name = azurerm_resource_group.rg_database.name
-  server_name         = azurerm_mysql_flexible_server.mysql.name
-  value               = "OFF"
 }
 
 resource "azurerm_mysql_flexible_server_configuration" "sql_generate_invisible_primary_key" {

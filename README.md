@@ -172,9 +172,9 @@ If you wish to host your own version of this infrastructure:
    az role assignment create --assignee <appId> --role Contributor --scope /subscriptions/<subscription-id>
    az role assignment create --assignee <appId> --role "User Access Administrator" --scope /subscriptions/<subscription-id>
    az ad app federated-credential create --id <appId> --parameters '{
-     "name": "github-main-branch",
+     "name": "github-advanced-branch",
      "issuer": "https://token.actions.githubusercontent.com",
-     "subject": "repo:<your-github-username>/azure-wordpress-aks-infra:ref:refs/heads/main",
+     "subject": "repo:<your-github-username>/azure-wordpress-aks-infra:ref:refs/heads/advanced",
      "audiences": ["api://AzureADTokenExchange"]
    }'
    ```

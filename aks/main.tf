@@ -22,6 +22,8 @@ module "aks" {
   key_vault_id     = data.terraform_remote_state.hub.outputs.key_vault_id
   resources_subnet = var.resources_subnet
   hub_rgname       = var.hub_rgname
+  hub_vnet_id      = data.terraform_remote_state.hub.outputs.vnet_id
+  hub_vnet_name    = data.terraform_remote_state.hub.outputs.vnet_name
 
   tags = {
     "Project"     = var.project,

@@ -6,7 +6,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   dns_prefix          = "aks-${var.env}"
 
   lifecycle {
-    prevent_destroy = true
+    prevent_destroy = false
   }
 
   linux_profile {
@@ -77,12 +77,6 @@ resource "azurerm_kubernetes_cluster" "aks" {
   tags = var.tags
 }
 
-resource "local_file" "azurek8s" {
-  content         = azurerm_kubernetes_cluster.aks.kube_admin_config_raw
-  filename        = "./azurek8s"
-  file_permission = "0644"
-}
-
 resource "azurerm_key_vault_secret" "aks_secret" {
   name         = "aks-${var.project}-${var.env}-${var.location_short}-secret"
   value        = azurerm_kubernetes_cluster.aks.kube_admin_config_raw
@@ -91,8 +85,8 @@ resource "azurerm_key_vault_secret" "aks_secret" {
 }
 
 resource "azurerm_kubernetes_cluster_node_pool" "additional_node_pools" {
-  for_each              = var.node_pools
-  
+  for_each = var.node_pools
+
   name                  = each.key
   kubernetes_cluster_id = azurerm_kubernetes_cluster.aks.id
   vm_size               = each.value.vm_size
@@ -104,6 +98,6 @@ resource "azurerm_kubernetes_cluster_node_pool" "additional_node_pools" {
   os_disk_type          = lookup(each.value, "os_disk_type", "Ephemeral")
   vnet_subnet_id        = azurerm_subnet.aks-snet.id
   max_pods              = 250
-  
-  tags                  = var.tags
+
+  tags = var.tags
 }

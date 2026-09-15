@@ -9,16 +9,22 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        component: [hub, aks, database]
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
-          terraform_version: 1.5.0
-          
-      - name: Terraform Init & Validate
+          terraform_version: 1.14.8
+
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init & Validate (${{ matrix.component }})
         run: |
-          cd aks
+          cd ${{ matrix.component }}
           terraform init -backend=false
           terraform validate

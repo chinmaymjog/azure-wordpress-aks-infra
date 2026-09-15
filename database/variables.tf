@@ -47,39 +47,3 @@ variable "storage_replication_type" {
   type        = string
   default     = "LRS"
 }
-
-variable "hub_location" {
-  description = "Hub location"
-  default     = ""
-}
-
-variable "hub_location_short" {
-  description = "Hub location short name"
-  default     = ""
-}
-
-variable "hub_env" {
-  description = "Hub environment"
-  default     = ""
-}
-
-variable "hub_rgname" {
-  description = "Hub resource group"
-  default     = ""
-}
-
-variable "tf_staccount" {
-  description = "TF State storage"
-  default     = ""
-}
-
-variable "tf_container" {
-  description = "TF State container"
-  default     = ""
-}
-
-
-variable "kubernetes_version" {
-  description = "K8s version"
-  default     = ""
-}

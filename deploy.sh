@@ -42,9 +42,15 @@ initiate() {
         exit 1
     fi
 
-    echo "Logging into Azure..."
-    az login --service-principal -u "$ARM_CLIENT_ID" -p "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" -o none
-    az account set -s "$ARM_SUBSCRIPTION_ID"
+    if [[ -n "$GITHUB_ACTIONS" ]]; then
+        # CI already authenticated via azure/login's OIDC step before this
+        # script runs - no service-principal secret to log in with here.
+        echo "Running in GitHub Actions - skipping az login (already authenticated via OIDC)."
+    else
+        echo "Logging into Azure..."
+        az login --service-principal -u "$ARM_CLIENT_ID" -p "$ARM_CLIENT_SECRET" --tenant "$ARM_TENANT_ID" -o none
+        az account set -s "$ARM_SUBSCRIPTION_ID"
+    fi
 }
 
 # Function to ensure storage account and container exist
@@ -124,6 +130,7 @@ terraform_deploy() {
         else
             terraform $action -var-file="$var_file" -var-file="../global.auto.tfvars"
         fi
+    else
         # For non-hub components, we need the hub outputs
         echo "Fetching Hub outputs..."
         # We must init the hub directory to ensure we can connect to the remote state

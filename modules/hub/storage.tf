@@ -6,9 +6,9 @@ resource "azurerm_storage_account" "fileshare" {
   account_kind             = "FileStorage"
   account_replication_type = "ZRS"
 
-#  lifecycle {
-#    prevent_destroy = true
-#  }
+  #  lifecycle {
+  #    prevent_destroy = true
+  #  }
   tags = var.tags
 }
 
@@ -18,8 +18,8 @@ resource "azurerm_storage_account" "snapshot" {
   location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "ZRS"
-#  lifecycle {
-#    prevent_destroy = true
-#  }
+  #  lifecycle {
+  #    prevent_destroy = true
+  #  }
   tags = var.tags
 }

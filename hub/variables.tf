@@ -47,18 +47,3 @@ variable "username" {
 variable "authorized_ip_range" {
   description = "IP range to whitelist"
 }
-
-variable "tf_staccount" {
-  description = "TF State storage"
-  default     = ""
-}
-
-variable "tf_container" {
-  description = "TF State container"
-  default     = ""
-}
-
-variable "kubernetes_version" {
-  description = "K8s version"
-  default     = ""
-}

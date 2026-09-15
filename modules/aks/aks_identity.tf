@@ -18,22 +18,19 @@ data "azurerm_container_registry" "acr" {
   resource_group_name = var.hub_rgname
 }
 
-# resource "azurerm_role_assignment" "rg-role" {
-#   principal_id                     = azurerm_user_assigned_identity.identity.principal_id
-#   role_definition_name             = "Contributor"
-#   scope                            = azurerm_resource_group.rg_aks.id
-#   skip_service_principal_aad_check = true
-# }
-
-# resource "azurerm_role_assignment" "acr-role" {
-#   principal_id                     = data.azurerm_user_assigned_identity.aks-agentpool.principal_id
-#   role_definition_name             = "AcrPull"
-#   scope                            = data.azurerm_container_registry.acr.id
-#   skip_service_principal_aad_check = true
-#   lifecycle {
-#     prevent_destroy = false
-#     ignore_changes = [
-#       principal_id,
-#     ]
-#   }
-# }
+# Managed-identity ACR pull: the AKS agent pool's kubelet identity gets
+# AcrPull directly, so the app repo's Deployment doesn't need an
+# imagePullSecret built from ACR's admin credentials (see
+# modules/hub/container_registry.tf, where admin_enabled is now false).
+resource "azurerm_role_assignment" "acr-role" {
+  principal_id                     = data.azurerm_user_assigned_identity.aks-agentpool.principal_id
+  role_definition_name             = "AcrPull"
+  scope                            = data.azurerm_container_registry.acr.id
+  skip_service_principal_aad_check = true
+  lifecycle {
+    prevent_destroy = false
+    ignore_changes = [
+      principal_id,
+    ]
+  }
+}

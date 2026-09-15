@@ -101,7 +101,7 @@ export ARM_SUBSCRIPTION_ID="<your-subscription-id>"
 ```
 
 #### For GitHub Actions (Forked Repo)
-Configure the same four variables as **GitHub Repository Secrets**.
+CI authenticates via OIDC, not a stored secret - see [CI/CD & Deploying via GitHub Actions](#4-cicd--deploying-via-github-actions) below for the one-time Azure AD setup.
 
 ### 3. Project Configuration
 Customize your foundation in **`global.auto.tfvars`**:
@@ -139,11 +139,7 @@ kubectl get nodes
 
 ## � Next Steps: The Application Layer
 
-Infrastructure is only the foundation. To complete the WordPress stack, follow the sequence below:
-
-1.  **Build Your Image**: [azure-wp-stack-docker-base](https://github.com/chinmaymjog/azure-wp-stack-docker-base) - Create the optimized PHP/Nginx image.
-2.  **Statics & Assets**: [azure-wp-stack-static-assets](https://github.com/chinmaymjog/azure-wp-stack-static-assets) - Manage themes and plugins.
-3.  **Deployment**: [azure-wp-stack-helm-chart](https://github.com/chinmaymjog/azure-wp-stack-helm-chart) - Deploy the full application to your new AKS cluster.
+Infrastructure is only the foundation. The application - container images, Helm chart, and its own CI/CD - lives in the companion [azure-wordpress-aks](https://github.com/chinmaymjog/azure-wordpress-aks) repo, which deploys onto the cluster this repo provisions.
 
 ### 4. Scaling for Production Workloads
 > [!NOTE]
@@ -159,13 +155,35 @@ If you are preparing to deploy this stack for a true production-grade environmen
     - **Testing/Low-Cost**: If using small VM sizes (like `Standard_B2ms`), set `os_disk_type = "Managed"`. These VM tiers often lack the sufficient cache required for Ephemeral disks.
     - **Production**: For high performance and faster node scaling, it is recommended to use `os_disk_type = "Ephemeral"`. This requires selecting a VM size with a cache large enough to accommodate your `os_disk_size_gb` (e.g., `Standard_D4ds_v5` or larger).
 
-### 4. CI/CD Testing (GitHub Actions)
-This repository includes starter workflows in `.github/` to automatically test your Terraform code directly against your Azure environment using **GitHub Actions**. 
+### 4. CI/CD & Deploying via GitHub Actions
+This repository includes workflows in `.github/workflows/` (`deploy.yml` and `verify.yml`). `verify.yml` runs `terraform fmt`/`validate` on every push/PR across all three components (hub, aks, database) with no Azure credentials needed. `deploy.yml` authenticates via **OpenID Connect (OIDC)** - no client secret is stored in GitHub at all.
 
-To use these workflows:
-1. Fork or clone this repository to your own GitHub account.
-2. Configure your Azure credentials as GitHub Repository Secrets (e.g., `ARM_CLIENT_ID`, `ARM_CLIENT_SECRET`, `ARM_TENANT_ID`, `ARM_SUBSCRIPTION_ID`).
-3. During pull requests to `develop` or merges to `main`, the pipeline validates the Terraform plans for the `hub` and the various `aks` environments (`lab`, `dev`, `preprod`, `prod`). 
+If you wish to host your own version of this infrastructure:
+1. **Fork the Repository**: Fork this repository to your own GitHub account.
+2. **Create an Azure AD App Registration with a federated credential** trusting this specific repo/branch, instead of a client secret:
+   ```bash
+   az ad app create --display-name "azure-wordpress-aks-infra-cicd"
+   # note the appId from the output, then:
+   az ad sp create --id <appId>
+   az role assignment create --assignee <appId> --role Contributor --scope /subscriptions/<subscription-id>
+   az role assignment create --assignee <appId> --role "User Access Administrator" --scope /subscriptions/<subscription-id>
+   az ad app federated-credential create --id <appId> --parameters '{
+     "name": "github-main-branch",
+     "issuer": "https://token.actions.githubusercontent.com",
+     "subject": "repo:<your-github-username>/azure-wordpress-aks-infra:ref:refs/heads/main",
+     "audiences": ["api://AzureADTokenExchange"]
+   }'
+   ```
+   Repeat the `federated-credential create` step with `"subject": "repo:.../azure-wordpress-aks-infra:environment:production"` if you also want `workflow_dispatch` applies (gated behind the `production` GitHub Environment) to authenticate.
+3. **Set GitHub Secrets**: In your forked repository, go to Settings > Secrets and variables > Actions. Add:
+    - `ARM_CLIENT_ID` (the app registration's `appId`)
+    - `ARM_TENANT_ID`
+    - `ARM_SUBSCRIPTION_ID`
+
+    No `ARM_CLIENT_SECRET` - OIDC doesn't need one.
+4. **Deploy**:
+    - Pushes to `main` automatically trigger `verify.yml`.
+    - To actually deploy, run the `deploy.yml` workflow manually from the **Actions** tab, choosing the component, environment, and `plan`/`apply`.
 
 ---
 

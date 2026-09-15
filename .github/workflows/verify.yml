@@ -2,9 +2,9 @@ name: Terraform Verify
 
 on:
   push:
-    branches: [ main ]
+    branches: [ advanced ]
   pull_request:
-    branches: [ main ]
+    branches: [ advanced ]
 
 jobs:
   validate:

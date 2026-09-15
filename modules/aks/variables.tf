@@ -97,3 +97,11 @@ variable "resources_subnet" {
 variable "hub_rgname" {
   description = "Resource group for hub"
 }
+
+variable "hub_vnet_id" {
+  description = "Resource ID of the Hub VNet, to peer the AKS VNet against"
+}
+
+variable "hub_vnet_name" {
+  description = "Name of the Hub VNet, to create the Hub-side peering against"
+}

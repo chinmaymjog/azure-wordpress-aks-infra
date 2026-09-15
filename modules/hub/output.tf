@@ -21,3 +21,11 @@ output "db_subnet_id" {
 output "mysql_dns_zone_id" {
   value = azurerm_private_dns_zone.mysql-dns.id
 }
+
+output "vnet_id" {
+  value = azurerm_virtual_network.vnet.id
+}
+
+output "vnet_name" {
+  value = azurerm_virtual_network.vnet.name
+}

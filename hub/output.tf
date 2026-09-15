@@ -2,6 +2,10 @@ output "acrname" {
   value = module.hub.acrname
 }
 
+output "acr_login_server" {
+  value = module.hub.acr_login_server
+}
+
 output "key_vault_id" {
   value = module.hub.key_vault_id
 }

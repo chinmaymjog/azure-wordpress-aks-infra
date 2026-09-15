@@ -9,13 +9,14 @@ record of - this is a working list, not an audit log.
 
 ## Next
 
-- [ ] `database/` still takes `db_subnet_id`/`key_vault_id`/
-      `mysql_dns_zone_id` as plain vars sourced from a committed
-      `global_hub.tfvars` with real resolved Azure IDs, instead of
-      pulling them from Hub remote state like `aks/main.tf` does.
+- [ ] ...
 
 ## Done
 
+- [x] `database/` now pulls `db_subnet_id`/`key_vault_id`/
+      `mysql_dns_zone_id` from Hub remote state via `database/data.tf`,
+      same pattern as `aks/main.tf` - no more real Azure IDs sourced
+      from a committed `global_hub.tfvars` (2026-09-15)
 - [x] Consolidated from 5 separate repos into `azure-wordpress-aks-infra`
       + `azure-wordpress-aks`, fixing real bugs found in review (disabled
       TLS enforcement on MySQL, public network access on ACR/Key Vault,

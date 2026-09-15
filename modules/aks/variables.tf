@@ -22,14 +22,6 @@ variable "username" {
   description = "VM sudo user"
 }
 
-variable "ssh_pvt_key" {
-  description = "SSH private key for authentication"
-}
-
-variable "ssh_keys" {
-  description = "SSH public key for authentication"
-}
-
 variable "node_vmsize" {
   description = "VM size"
 }

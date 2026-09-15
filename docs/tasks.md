@@ -9,12 +9,10 @@ record of - this is a working list, not an audit log.
 
 ## Next
 
-- [ ] Rotate the Azure Storage account key and Docker Hub password that
-      were found in the old (pre-consolidation) `charts` repo history -
-      confirmed not present in this repo, but were real credentials.
-- [ ] Consider a private endpoint for ACR once the AKS subnet ID is
-      known, to fully close the network-level access gap noted in
-      docs/architecture.md.
+- [ ] `database/` still takes `db_subnet_id`/`key_vault_id`/
+      `mysql_dns_zone_id` as plain vars sourced from a committed
+      `global_hub.tfvars` with real resolved Azure IDs, instead of
+      pulling them from Hub remote state like `aks/main.tf` does.
 
 ## Done
 
@@ -27,3 +25,8 @@ record of - this is a working list, not an audit log.
 - [x] Simplified `main` to a single environment with no CI/CD
       requirement - `advanced` branch keeps the full dev/lab/preprod/prod
       + OIDC CI/CD setup (2026-09-15)
+- [x] Rotated the Azure Storage account key and Docker Hub password found
+      in the old (pre-consolidation) `charts` repo history (2026-09-15)
+- [x] Added VNet peering between the Hub and AKS VNets and a private
+      endpoint for ACR - closes a real connectivity gap (AKS previously
+      had no network path to MySQL or ACR, only working DNS) (2026-09-15)

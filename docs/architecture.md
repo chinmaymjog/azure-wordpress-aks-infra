@@ -10,14 +10,22 @@ Flexible Server). See the diagram in `README.md`.
 
 1. `./deploy.sh hub apply` provisions the Hub - ACR, Key Vault, Log
    Analytics workspace, and the shared VNet.
-2. `./deploy.sh db apply` provisions the MySQL Flexible Server in the
-   Spoke, peered to the Hub for private DNS resolution.
+2. `./deploy.sh db apply` provisions the MySQL Flexible Server, delegated
+   into a subnet in the Hub VNet.
 3. `./deploy.sh aks apply` provisions the AKS cluster - node pool, its
    own generated SSH keypair (via the `tls` provider, stored in Key
-   Vault), and an `AcrPull` role assignment so the kubelet identity can
-   pull images from the Hub's ACR with no image pull secret.
+   Vault), an `AcrPull` role assignment so the kubelet identity can pull
+   images from the Hub's ACR with no image pull secret, and VNet peering
+   both ways between the AKS and Hub VNets so AKS can actually reach
+   MySQL and the ACR private endpoint (below) - private DNS records
+   resolve from either VNet without peering, but peering is what gives
+   the traffic a route to follow.
 4. Each `deploy.sh` invocation bootstraps its own Terraform remote state
    (a storage account in the Hub resource group) on first run.
+5. ACR also gets a private endpoint into the Hub VNet's `snet-endpoint`
+   subnet, so AKS pulls images over the peered network path rather than
+   the public internet. The `network_rule_set` IP allowlist stays as a
+   separate path for direct public access (e.g. from your own machine).
 
 ## Key Decisions
 
@@ -39,6 +47,14 @@ Flexible Server). See the diagram in `README.md`.
   clone, including CI. Generating it removes the local-file dependency
   entirely.
   **Revisit if:** Never - this is strictly more portable.
+- **Decision:** AKS reaches ACR over a private endpoint + VNet peering,
+  not just the identity-based `AcrPull` role.
+  **Why:** Without peering, the AKS and Hub VNets had no network path to
+  each other at all - MySQL and (once added) the ACR private endpoint
+  had working DNS but nothing to route traffic to. `AcrPull` alone only
+  controls *who* can pull, not *how* the traffic gets there.
+  **Revisit if:** Never, without a strong reason - this closes a real
+  connectivity gap, not just a hardening nice-to-have.
 
 ## Known Risks / Rough Edges
 
@@ -48,6 +64,7 @@ Flexible Server). See the diagram in `README.md`.
   `aks-main-weu-terraform.tfvars` - update it to your own before relying
   on it as an access restriction.
 - ACR's `network_rule_set` only supports IP-based rules in the pinned
-  provider version (VNet-scoped rules were removed upstream) - the AKS
-  subnet isn't network-restricted at the registry level, only
-  identity-restricted via the `AcrPull` role assignment.
+  provider version (VNet-scoped rules were removed upstream) - direct
+  public access is IP-restricted, but not VNet-restricted. AKS traffic
+  itself goes over the private endpoint instead, so this only matters for
+  anyone hitting the registry's public endpoint directly.

@@ -7,8 +7,6 @@ module "aks" {
   username            = var.username
   agent_count         = var.agent_count
   node_vmsize         = var.node_vmsize
-  ssh_pvt_key         = file("../k8s")
-  ssh_keys            = file("../k8s.pub")
   authorized_ip_range = formatlist("%s/32", flatten([var.authorized_ip_range]))
   os_disk_size_gb     = var.os_disk_size_gb
   os_disk_type        = var.os_disk_type

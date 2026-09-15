@@ -86,7 +86,11 @@ The `deploy.sh` script manages the lifecycle of your core platform: Hub services
 - **Terraform** (v1.3.x+)
 - **Azure CLI** (v2.x)
 - **Service Principal**: An SP with `Contributor` and `User Access Administrator` roles.
-- **SSH Key**: An RSA public key at `~/.ssh/id_rsa.pub` (for node access).
+
+Node SSH access doesn't need a local key - `modules/aks` generates its own
+keypair via Terraform's `tls` provider and stores the private half in Key
+Vault, so `terraform plan`/`apply` work on a completely fresh clone with no
+local file to create first.
 
 ### 2. Configure Credentials
 Depending on your deployment method, you must provide Azure Service Principal credentials:

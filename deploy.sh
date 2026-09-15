@@ -3,7 +3,7 @@
 set -e
 
 # Default variables
-ENV="lab"
+ENV="main"
 LOCATION_SHORT="weu"
 ACTION="plan"
 COMPONENT=""
@@ -13,7 +13,9 @@ if [[ $# -eq 0 ]]; then
     echo "Usage: ./deploy.sh [component] [action] [env] [location_short]"
     echo "  component: hub, aks, or db"
     echo "  action:    plan, apply, or destroy (default: plan)"
-    echo "  env:       environment name (e.g., lab, dev, preprod, prod) (default: lab)"
+    echo "  env:       environment name (default: main - matches aks-main-weu-terraform.tfvars"
+    echo "             and database-main-terraform.tfvars; only relevant if you've added"
+    echo "             more environment .tfvars files of your own)"
     echo "  location:  location shortname (default: weu)"
     echo "Example: ./deploy.sh hub apply"
     exit 1

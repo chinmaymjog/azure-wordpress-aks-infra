@@ -6,6 +6,13 @@ resource "azurerm_storage_account" "wp_storage" {
   account_replication_type = var.storage_replication_type
   account_kind             = var.storage_account_tier == "Premium" ? "FileStorage" : "StorageV2"
 
+  network_rules {
+    default_action             = "Deny"
+    bypass                     = ["AzureServices"]
+    ip_rules                   = var.authorized_ip_range
+    virtual_network_subnet_ids = concat([var.db_subnet_id], var.storage_subnet_ids)
+  }
+
   tags = var.tags
 }
 

@@ -24,14 +24,19 @@ resource "azurerm_container_registry" "cr" {
   # firewall - private-link traffic bypasses network_rule_set entirely),
   # so this rule only needs to keep covering direct public access, e.g.
   # from your own machine.
-  network_rule_set {
+  #
+  # One ip_rule is emitted per authorized_ip_range entry (like Key Vault and
+  # AKS). Bare IPs get "/32" appended; entries that already carry a mask
+  # (CIDR) are used as-is, so we never produce "x.x.x.x/32/32".
+  network_rule_set = [{
     default_action = "Deny"
-
-    ip_rule {
-      action   = "Allow"
-      ip_range = "${var.authorized_ip_range[0]}/32"
-    }
-  }
+    ip_rule = [
+      for ip in var.authorized_ip_range : {
+        action   = "Allow"
+        ip_range = strcontains(ip, "/") ? ip : "${ip}/32"
+      }
+    ]
+  }]
   tags = var.tags
 }
 

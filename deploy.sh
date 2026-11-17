@@ -69,8 +69,19 @@ ensure_backend_infra() {
 
     if ! az storage account show -n "$sa_name" -g "$rg_name" &>/dev/null; then
         echo "Creating storage account: $sa_name"
-        az storage account create -n "$sa_name" -g "$rg_name" -l "$hub_location" --sku Standard_LRS -o none
+        az storage account create -n "$sa_name" -g "$rg_name" -l "$hub_location" --sku Standard_LRS \
+            --min-tls-version TLS1_2 --allow-blob-public-access false -o none
     fi
+
+    # Applied on every run (idempotent) so an already-existing state account
+    # is hardened too. State holds the DB admin password and AKS admin
+    # kubeconfig, so keep it private and recoverable.
+    az storage account update -n "$sa_name" -g "$rg_name" \
+        --min-tls-version TLS1_2 --allow-blob-public-access false -o none
+    az storage account blob-service-properties update --account-name "$sa_name" -g "$rg_name" \
+        --enable-versioning true \
+        --enable-delete-retention true --delete-retention-days 14 \
+        --enable-container-delete-retention true --container-delete-retention-days 14 -o none
 
     if ! az storage container show --account-name "$sa_name" -n "$container_name" &>/dev/null; then
         echo "Creating storage container: $container_name"

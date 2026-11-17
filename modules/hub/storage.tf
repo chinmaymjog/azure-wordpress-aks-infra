@@ -6,6 +6,13 @@ resource "azurerm_storage_account" "fileshare" {
   account_kind             = "FileStorage"
   account_replication_type = "ZRS"
 
+  network_rules {
+    default_action             = "Deny"
+    bypass                     = ["AzureServices"]
+    ip_rules                   = var.authorized_ip_range
+    virtual_network_subnet_ids = concat([azurerm_subnet.snet-vm.id, azurerm_subnet.snet-endpoint.id], var.storage_subnet_ids)
+  }
+
   #  lifecycle {
   #    prevent_destroy = true
   #  }
@@ -18,6 +25,13 @@ resource "azurerm_storage_account" "snapshot" {
   location                 = var.location
   account_tier             = "Standard"
   account_replication_type = "ZRS"
+
+  network_rules {
+    default_action             = "Deny"
+    bypass                     = ["AzureServices"]
+    ip_rules                   = var.authorized_ip_range
+    virtual_network_subnet_ids = concat([azurerm_subnet.snet-vm.id, azurerm_subnet.snet-endpoint.id], var.storage_subnet_ids)
+  }
   #  lifecycle {
   #    prevent_destroy = true
   #  }

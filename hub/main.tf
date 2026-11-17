@@ -11,6 +11,7 @@ module "hub" {
   db_subnet_prefixes       = var.db_subnet_prefixes
   runner_subnet_prefixes   = var.runner_subnet_prefixes
   authorized_ip_range      = var.authorized_ip_range
+  storage_subnet_ids       = var.storage_subnet_ids
 
   tags = {
     "Project"     = var.project,

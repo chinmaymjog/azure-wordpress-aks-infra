@@ -1,6 +1,12 @@
 resource "random_password" "dbadminpassword" {
-  length  = 16
-  special = "true"
+  length  = 20
+  special = true
+  # Only characters that are safe unquoted in YAML, shell and URLs.
+  override_special = "_-."
+  min_lower        = 2
+  min_upper        = 2
+  min_numeric      = 2
+  min_special      = 2
 }
 
 locals {

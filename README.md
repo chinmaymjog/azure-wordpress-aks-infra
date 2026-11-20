@@ -110,8 +110,8 @@ CI authenticates via OIDC, not a stored secret - see [CI/CD & Deploying via GitH
 ### 3. Project Configuration
 Customize your foundation in **`global.auto.tfvars`**:
 - **`project`**: A unique string for resource naming (e.g., `wp-stack`).
-- **`hub_location`**: Your primary Azure region (e.g., `westeurope`).
-- **⚠️ Scaling for Production**: By default, clusters use minimal tiers. To scale up, modify the environment-specific `.tfvars` files (e.g., `aks/aks-prod-weu-terraform.tfvars`) to use `Standard_D4ds_v5` nodes.
+- **`hub_location`**: Your primary Azure region (e.g., `eastus2`).
+- **⚠️ Scaling for Production**: By default, clusters use minimal tiers. To scale up, modify the environment-specific `.tfvars` files (e.g., `aks/aks-prod-eus2-terraform.tfvars`) to use `Standard_D4ds_v5` nodes.
 
 ### 4. Deploy Infrastructure
 The infrastructure **must** be deployed in this specific sequence:
@@ -122,18 +122,18 @@ The infrastructure **must** be deployed in this specific sequence:
    ```
 2. **Database**: Managed MySQL for your environment.
    ```bash
-   ./deploy.sh db apply dev weu
+   ./deploy.sh db apply dev eus2
    ```
 3. **AKS**: The Kubernetes cluster.
    ```bash
-   ./deploy.sh aks apply dev weu
+   ./deploy.sh aks apply dev eus2
    ```
 
 ### 5. Verify Deployment
 Once the AKS deployment finishes, verify access to your new cluster (assuming `project = "wp-stack"` and `env = "dev"`):
 ```bash
 # 1. Get credentials for your cluster
-az aks get-credentials --resource-group rg-wp-stack-dev-weu --name aks-wp-stack-dev-weu
+az aks get-credentials --resource-group rg-wp-stack-dev-eus2 --name aks-wp-stack-dev-eus2
 
 # 2. Check node status
 kubectl get nodes

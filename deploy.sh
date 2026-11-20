@@ -4,7 +4,7 @@ set -e
 
 # Default variables
 ENV="lab"
-LOCATION_SHORT="weu"
+LOCATION_SHORT="eus2"
 ACTION="plan"
 COMPONENT=""
 
@@ -14,7 +14,7 @@ if [[ $# -eq 0 ]]; then
     echo "  component: hub, aks, or db"
     echo "  action:    plan, apply, or destroy (default: plan)"
     echo "  env:       environment name (e.g., lab, dev, preprod, prod) (default: lab)"
-    echo "  location:  location shortname (default: weu)"
+    echo "  location:  location shortname (default: eus2)"
     echo "Example: ./deploy.sh hub apply"
     exit 1
 fi
@@ -67,19 +67,8 @@ ensure_backend_infra() {
 
     if ! az storage account show -n "$sa_name" -g "$rg_name" &>/dev/null; then
         echo "Creating storage account: $sa_name"
-        az storage account create -n "$sa_name" -g "$rg_name" -l "$hub_location" --sku Standard_LRS \
-            --min-tls-version TLS1_2 --allow-blob-public-access false -o none
+        az storage account create -n "$sa_name" -g "$rg_name" -l "$hub_location" --sku Standard_LRS -o none
     fi
-
-    # Applied on every run (idempotent) so an already-existing state account
-    # is hardened too. State holds the DB admin password and AKS admin
-    # kubeconfig, so keep it private and recoverable.
-    az storage account update -n "$sa_name" -g "$rg_name" \
-        --min-tls-version TLS1_2 --allow-blob-public-access false -o none
-    az storage account blob-service-properties update --account-name "$sa_name" -g "$rg_name" \
-        --enable-versioning true \
-        --enable-delete-retention true --delete-retention-days 14 \
-        --enable-container-delete-retention true --container-delete-retention-days 14 -o none
 
     if ! az storage container show --account-name "$sa_name" -n "$container_name" &>/dev/null; then
         echo "Creating storage container: $container_name"

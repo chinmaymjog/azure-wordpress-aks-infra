@@ -1,5 +1,5 @@
-location                 = "westeurope"
-location_short           = "weu"
+location                 = "eastus2"
+location_short           = "eus2"
 env                      = "lab"
 dbsku                    = "B_Standard_B1ms"
 dbsize                   = "20"

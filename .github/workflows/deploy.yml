@@ -26,9 +26,9 @@ on:
         required: false
         default: 'dev'
       location:
-        description: 'Location short (e.g. weu)'
+        description: 'Location short (e.g. eus2)'
         required: false
-        default: 'weu'
+        default: 'eus2'
       action:
         description: 'Terraform Action'
         required: true
@@ -81,6 +81,6 @@ jobs:
           COMPONENT="${{ github.event.inputs.component || 'hub' }}"
           ACTION="${{ github.event.inputs.action || 'plan' }}"
           ENV="${{ github.event.inputs.environment || 'dev' }}"
-          LOC="${{ github.event.inputs.location || 'weu' }}"
+          LOC="${{ github.event.inputs.location || 'eus2' }}"
           chmod +x ./deploy.sh
           ./deploy.sh "$COMPONENT" "$ACTION" "$ENV" "$LOC"

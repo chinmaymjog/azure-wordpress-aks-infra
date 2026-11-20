@@ -1,5 +1,5 @@
-location            = "westeurope"
-location_short      = "weu"
+location            = "eastus2"
+location_short      = "eus2"
 env                 = "lab"
 node_vmsize         = "Standard_B2ms"
 agent_count         = "1"

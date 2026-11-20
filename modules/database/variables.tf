@@ -51,3 +51,14 @@ variable "storage_replication_type" {
 variable "mysql_dns_zone_id" {
   description = "ID of mysql private DNS zone"
 }
+variable "authorized_ip_range" {
+  description = "Public IPs allowed to reach the WordPress storage account (scripts, uploads)"
+  type        = list(string)
+  default     = []
+}
+
+variable "storage_subnet_ids" {
+  description = "Subnet IDs allowed to reach the WordPress storage account; add the AKS node subnet ID here so pods can mount the file share. Must have the Microsoft.Storage service endpoint."
+  type        = list(string)
+  default     = []
+}

@@ -47,3 +47,9 @@ variable "username" {
 variable "authorized_ip_range" {
   description = "IP range to whitelist"
 }
+
+variable "storage_subnet_ids" {
+  description = "Extra subnet IDs (e.g. the AKS node subnet) allowed to reach the hub storage accounts. Must have the Microsoft.Storage service endpoint."
+  type        = list(string)
+  default     = []
+}

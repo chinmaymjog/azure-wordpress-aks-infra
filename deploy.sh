@@ -4,7 +4,7 @@ set -e
 
 # Default variables
 ENV="lab"
-LOCATION_SHORT="weu"
+LOCATION_SHORT="eus2"
 ACTION="plan"
 COMPONENT=""
 
@@ -14,7 +14,7 @@ if [[ $# -eq 0 ]]; then
     echo "  component: hub, aks, or db"
     echo "  action:    plan, apply, or destroy (default: plan)"
     echo "  env:       environment name (e.g., lab, dev, preprod, prod) (default: lab)"
-    echo "  location:  location shortname (default: weu)"
+    echo "  location:  location shortname (default: eus2)"
     echo "Example: ./deploy.sh hub apply"
     exit 1
 fi

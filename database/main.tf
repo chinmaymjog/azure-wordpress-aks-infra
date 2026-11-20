@@ -12,6 +12,8 @@ module "database" {
   mysql_dns_zone_id        = data.terraform_remote_state.hub.outputs.mysql_dns_zone_id
   storage_account_tier     = var.storage_account_tier
   storage_replication_type = var.storage_replication_type
+  authorized_ip_range      = var.authorized_ip_range
+  storage_subnet_ids       = var.storage_subnet_ids
 
   tags = {
     "Project"     = var.project,

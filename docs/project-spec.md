@@ -35,7 +35,7 @@ containerized workload.
 - Real Azure cost from the moment `hub`/`aks`/`db` are applied - all
   billed resources, no free tier. Run `./deploy.sh aks destroy` /
   `db destroy` / `hub destroy` when done experimenting.
-- `authorized_ip_range` in `aks-main-weu-terraform.tfvars` needs updating
+- `authorized_ip_range` in `aks-main-eus2-terraform.tfvars` needs updating
   to your own IP before it's meaningful as an access restriction.
 
 ## Notes

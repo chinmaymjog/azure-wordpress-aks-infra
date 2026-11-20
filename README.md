@@ -105,7 +105,7 @@ Each step calls `terraform plan` first when you omit `apply` (just run
 
 ### 5. Verify
 ```bash
-az aks get-credentials --resource-group rg-aks-<project>-main-weu --name aks-<project>-main-weu
+az aks get-credentials --resource-group rg-aks-<project>-main-eus2 --name aks-<project>-main-eus2
 kubectl get nodes
 ```
 
@@ -119,7 +119,7 @@ nodes, `B_Standard_B1ms` database) - the fastest path to seeing it actually
 work. Two ways to grow from here, both documented in more depth on the
 [`advanced` branch](https://github.com/chinmaymjog/azure-wordpress-aks-infra/tree/advanced):
 
-- **Bigger single environment**: edit `aks/aks-main-weu-terraform.tfvars`
+- **Bigger single environment**: edit `aks/aks-main-eus2-terraform.tfvars`
   and `database/database-main-terraform.tfvars` directly - bump
   `node_vmsize`/`agent_count`/`dbsku` and re-run `./deploy.sh aks apply` /
   `./deploy.sh db apply`.

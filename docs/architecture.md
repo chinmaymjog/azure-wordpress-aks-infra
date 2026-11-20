@@ -61,7 +61,7 @@ Flexible Server). See the diagram in `README.md`.
 - Real, billed Azure infrastructure from the first `apply` - no free
   tier. `./deploy.sh <component> destroy` when you're done.
 - `authorized_ip_range` defaults to one specific IP in
-  `aks-main-weu-terraform.tfvars` - update it to your own before relying
+  `aks-main-eus2-terraform.tfvars` - update it to your own before relying
   on it as an access restriction.
 - ACR's `network_rule_set` only supports IP-based rules in the pinned
   provider version (VNet-scoped rules were removed upstream) - direct
